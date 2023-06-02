@@ -16,14 +16,12 @@ class SocketRepository(private val messageInterface: NewMessageInterface) {
     fun initSocket(username: String) {
         userName = username
 
-        val wsUrl = "ws://10.0.2.2:3000"
-//        val wsUrl = "ws://192.168.1.55:3000"
+//        val wsUrl = "ws://10.0.2.2:3000"
+        val wsUrl = "ws://192.168.1.55:3000"
 
         webSocket = object : WebSocketClient(URI(wsUrl)) {
             override fun onOpen(handshakedata: ServerHandshake?) {
-                sendMessageToSocket(
-                    MessageModel("store_user", username, null, null)
-                )
+                sendMessageToSocket(MessageModel("store_user", username, null, null))
             }
 
             override fun onMessage(message: String?) {
@@ -34,7 +32,6 @@ class SocketRepository(private val messageInterface: NewMessageInterface) {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-
             }
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
@@ -47,7 +44,6 @@ class SocketRepository(private val messageInterface: NewMessageInterface) {
 
         }
         webSocket?.connect()
-
     }
 
     fun sendMessageToSocket(message: MessageModel) {

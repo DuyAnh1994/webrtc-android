@@ -57,27 +57,61 @@
             android:layout_marginHorizontal="30dp"
             android:text="call"
             android:id="@+id/callBtn"/>
+
     </RelativeLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:id="@+id/callLayout"
         android:visibility="gone"
         tools:visibility="visible"
         android:layout_height="match_parent">
-        <org.webrtc.SurfaceViewRenderer
-            android:id="@+id/remote_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
 
-        <org.webrtc.SurfaceViewRenderer
-            android:id="@+id/local_view"
-            android:layout_width="180dp"
-            android:layout_height="250dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            android:elevation="16dp" />
+        <LinearLayout
+            android:id="@+id/llRow1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <org.webrtc.SurfaceViewRenderer
+                android:id="@+id/svrMyCamera"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1"
+                android:elevation="16dp" />
+
+            <org.webrtc.SurfaceViewRenderer
+                android:id="@+id/svr1"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/llRow2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/llRow1"
+            android:orientation="horizontal">
+
+            <org.webrtc.SurfaceViewRenderer
+                android:id="@+id/svr3"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1" />
+
+            <org.webrtc.SurfaceViewRenderer
+                android:id="@+id/svr4"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_margin="5dp"
+                android:layout_weight="1" />
+
+        </LinearLayout>
 
         <ProgressBar
             android:layout_centerInParent="true"
@@ -85,10 +119,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:indeterminate="true"
-            app:layout_constraintBottom_toBottomOf="@id/remote_view"
-            app:layout_constraintEnd_toEndOf="@id/remote_view"
-            app:layout_constraintStart_toStartOf="@id/remote_view"
-            app:layout_constraintTop_toTopOf="@id/remote_view" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
         <LinearLayout
             android:gravity="center"
             android:background="@drawable/curve_background"

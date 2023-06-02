@@ -68,9 +68,9 @@ class P2PCallActivity : AppCompatActivity(), NewMessageInterface {
                     setWhoToCallLayoutGone()
                     setCallLayoutVisible()
                     binding.apply {
-                        rtcClient?.initializeSurfaceView(localView)
-                        rtcClient?.initializeSurfaceView(remoteView)
-                        rtcClient?.startLocalVideo(localView)
+                        rtcClient?.initializeSurfaceView(svrMyCamera)
+                        rtcClient?.initializeSurfaceView(svr1)
+                        rtcClient?.startLocalVideo(svrMyCamera)
                         rtcClient?.call(targetUserNameEt.text.toString())
                     }
                 }
@@ -140,9 +140,9 @@ class P2PCallActivity : AppCompatActivity(), NewMessageInterface {
                         setWhoToCallLayoutGone()
                         setCallLayoutVisible()
                         binding.apply {
-                            rtcClient?.initializeSurfaceView(localView)
-                            rtcClient?.initializeSurfaceView(remoteView)
-                            rtcClient?.startLocalVideo(localView)
+                            rtcClient?.initializeSurfaceView(svrMyCamera)
+                            rtcClient?.initializeSurfaceView(svr1)
+                            rtcClient?.startLocalVideo(svrMyCamera)
                             rtcClient?.call(targetUserNameEt.text.toString())
                         }
                     }
@@ -160,9 +160,9 @@ class P2PCallActivity : AppCompatActivity(), NewMessageInterface {
                         setWhoToCallLayoutGone()
 
                         binding.apply {
-                            rtcClient?.initializeSurfaceView(localView)
-                            rtcClient?.initializeSurfaceView(remoteView)
-                            rtcClient?.startLocalVideo(localView)
+                            rtcClient?.initializeSurfaceView(svrMyCamera)
+                            rtcClient?.initializeSurfaceView(svr1)
+                            rtcClient?.startLocalVideo(svrMyCamera)
                         }
                         val session = SessionDescription(SessionDescription.Type.OFFER, message.data.toString())
                         Log.d(TAG, "onNewMessage  offer_received ccc: ${message.data}")
@@ -266,7 +266,7 @@ class P2PCallActivity : AppCompatActivity(), NewMessageInterface {
 
         override fun onAddStream(p0: MediaStream?) {
             Log.d(TAG, "onAddStream() called with: p0 = ${p0?.id}")
-            p0?.videoTracks?.get(0)?.addSink(binding.remoteView)
+            p0?.videoTracks?.get(0)?.addSink(binding.svr1)
         }
 
         override fun onRemoveStream(p0: MediaStream?) {

@@ -49,7 +49,7 @@ class TriosRTCClient(
     private var localVideoCapturer: CameraVideoCapturer? = null
     private var localAudioTrack: AudioTrack? = null
     private var localVideoTrack: VideoTrack? = null
-    var localSdp : String? = ""
+    var localSdp: String? = ""
 
 
     /**
@@ -230,7 +230,7 @@ class TriosRTCClient(
     ) {
         val sdpObserver = object : SdpObserverImpl() {
             override fun onSetSuccess() {
-                localSdp = spAfterCreateOffer?.description
+                localSdp = "${spAfterCreateOffer?.description}\r\n"
 
                 val dataDto = DataDtoRequest(
                     name = target,
