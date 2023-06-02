@@ -22,7 +22,7 @@ import org.webrtc.SessionDescription
 
 class P2PCallActivity : AppCompatActivity(), NewMessageInterface {
 
-    lateinit var binding: P2pCallActivityBinding
+    private lateinit var binding: P2pCallActivityBinding
     private var userName: String? = null
     private var socketRepository: SocketRepository? = null
     private var rtcClient: RTCClient? = null
@@ -38,8 +38,6 @@ class P2PCallActivity : AppCompatActivity(), NewMessageInterface {
         binding = P2pCallActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
         init()
-
-
     }
 
     private fun init() {

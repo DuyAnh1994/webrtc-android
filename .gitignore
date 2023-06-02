@@ -7,4 +7,5 @@
 .externalNativeBuild
 .cxx
 local.properties
-/webrtc server/node_modules
+/server/p2p/node_modules
+/server/sfu/node_modules
