@@ -1,0 +1,39 @@
+{
+  "type": "response",
+  "transId": 0,
+  "data": {
+    "sdp": "v=0\r\no=- 1685681062737 1 IN IP4 127.0.0.1\r\ns=semantic-sdp\r\nc=IN IP4 0.0.0.0\r\nt=0 0\r\na=extmap-allow-mixed\r\na=ice-lite\r\na=msid-semantic: WMS *\r\na=group:BUNDLE 0 1\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\na=rtpmap:111 opus/48000/2\r\na=fmtp:111 minptime=10;useinbandfec=1\r\na=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\na=extmap-allow-mixed\r\na=setup:passive\r\na=mid:0\r\na=recvonly\r\na=ice-ufrag:57e7e0cab3f9b32f\r\na=ice-pwd:3230d187a73a5f4721c12f253ff863ec628a59fd5b6bfc31\r\na=fingerprint:sha-256 7E:83:D0:40:C7:83:6B:37:90:24:93:90:F7:C4:07:1E:8C:FF:0B:72:AE:D8:65:E6:83:A0:13:15:A8:1B:B1:9F\r\na=candidate:1 1 UDP 2130706431 13.213.226.162 53588 typ host\r\na=rtcp-mux\r\na=rtcp-rsize\r\nm=video 9 UDP/TLS/RTP/SAVPF 98 99 100 101\r\na=rtpmap:98 VP9/90000\r\na=rtpmap:99 rtx/90000\r\na=rtpmap:100 VP9/90000\r\na=rtpmap:101 rtx/90000\r\na=fmtp:99 apt=98\r\na=fmtp:98 profile-id=0\r\na=fmtp:101 apt=100\r\na=fmtp:100 profile-id=2\r\na=rtcp-fb:98 transport-cc \r\na=rtcp-fb:98 ccm fir\r\na=rtcp-fb:98 nack \r\na=rtcp-fb:98 nack pli\r\na=rtcp-fb:100 transport-cc \r\na=rtcp-fb:100 ccm fir\r\na=rtcp-fb:100 nack \r\na=rtcp-fb:100 nack pli\r\na=extmap:13 urn:3gpp:video-orientation\r\na=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\na=extmap-allow-mixed\r\na=setup:passive\r\na=mid:1\r\na=recvonly\r\na=ice-ufrag:57e7e0cab3f9b32f\r\na=ice-pwd:3230d187a73a5f4721c12f253ff863ec628a59fd5b6bfc31\r\na=fingerprint:sha-256 7E:83:D0:40:C7:83:6B:37:90:24:93:90:F7:C4:07:1E:8C:FF:0B:72:AE:D8:65:E6:83:A0:13:15:A8:1B:B1:9F\r\na=candidate:1 1 UDP 2130706431 13.213.226.162 53588 typ host\r\na=rtcp-mux\r\na=rtcp-rsize\r\n",
+    "room": {
+      "id": "4",
+      "participants": [
+        {
+          "id": 0,
+          "name": "a",
+          "streamsIn": "{}",
+          "streamsOut": "{}",
+          "streams": [
+            null
+          ]
+        },
+        {
+          "id": 1,
+          "name": "a",
+          "streamsIn": "{}",
+          "streamsOut": "{}",
+          "streams": [
+            null
+          ]
+        },
+        {
+          "id": 2,
+          "name": "h",
+          "streamsIn": "{}",
+          "streamsOut": "{}",
+          "streams": [
+            null
+          ]
+        }
+      ]
+    }
+  }
+}
