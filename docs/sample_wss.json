@@ -1,0 +1,13 @@
+{
+    "cmd"  : "OFFER",
+    "offer" : "v=0"
+}
+
+
+
+
+{
+    "cmd"  : "SELECT_LAYER",
+    "spatialLayerId" : 0,
+    "temporalLayerId" : 0
+}

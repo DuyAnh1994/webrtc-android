@@ -1,0 +1,23 @@
+app:      send cmd : start_call
+
+server:   nhận cmd : start_call -> send cmd : call_response
+
+app:      nhận cmd : call_response
+             -> init (remote + local) surfaceView
+             -> start local video (local surfaceView)
+             -> tạo offer -> tạo localDesc và send socket với cmd : create_offer
+
+server:   nhận cmd : create_offer 
+             -> send cmd : offer_received
+
+app:      nhận cmd : offer_received 
+             -> tạo sdp (type : OFFER) 
+             -> tạo remoteDesc
+             -> tạo answer, send cmd : create_answer
+
+server:   nhận cmd : create_answer -> send cmd : answer_received (name , sdp)
+
+app       nhận cmd : answer_received
+             -> tạo sdp (type: ANSWER)
+             -> tạo remoteDesc
+

@@ -1,0 +1,20 @@
+{
+  "type": "event",
+  "name": "participants",
+  "data": [
+    {
+      "id": 20,
+      "name": "gggg",
+      "streams": [
+        null
+      ]
+    },
+    {
+      "id": 21,
+      "name": "a",
+      "streams": [
+        null
+      ]
+    }
+  ]
+}
