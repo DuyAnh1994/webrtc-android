@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.SfuActivityBinding
-import com.anhnd.webrtc.trios.model.call.request.DataDtoRequest
-import com.anhnd.webrtc.trios.model.call.request.RtcDtoRequest
+import com.anhnd.webrtc.trios.callback.RTCListener
+import com.anhnd.webrtc.trios.callback.State
 import com.anhnd.webrtc.trios.model.call.response.RtcDtoResponse
 import com.anhnd.webrtc.trios.model.call.update.RtcDtoUpdate
 import com.anhnd.webrtc.trios.model.event.response.EventDtoResponse
@@ -21,11 +21,12 @@ import org.webrtc.PeerConnection
 import org.webrtc.RtpReceiver
 import org.webrtc.SessionDescription
 
-class SfuActivity : AppCompatActivity(), TriosSocketListener {
+class SfuActivity : AppCompatActivity() {
 
     private lateinit var binding: SfuActivityBinding
-    private var socketClient: TriosSocket? = null
     private var rtcClient: TriosRTCClient? = null
+    private var socket: TriosSocket? = null
+    private val handleModel by lazy { HandleModel() }
     private val rtcAudioManager by lazy { RTCAudioManager.create(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,86 +34,49 @@ class SfuActivity : AppCompatActivity(), TriosSocketListener {
         binding = SfuActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-//        val socketIO = TriosSocketIO()
-        socketClient = TriosSocket(this)
+        socket = TriosSocket(socketListener)
         rtcClient = TriosRTCClient(
             application = application,
-            socket = socketClient!!,
-            observer = peerConnectionObserverImpl
+            observer = peerConnectionObserverImpl,
+            listener = rtcListener
         )
 
         rtcAudioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.SPEAKER_PHONE)
-        binding.sendCmd.setOnClickListener {
-            callRequest()
-        }
+        binding.sendCmd.setOnClickListener { doCall() }
     }
 
-    override fun onRtcResponse(rtcDto: RtcDtoResponse) {
-        Log.d(TAG, "onRtcResponse() called with: rtcDto = ${rtcDto.type}")
-        offerResponse(rtcDto.dataDto?.sdp)
-    }
-
-    override fun onRtcEvent(eventDto: EventDtoResponse) {
-        Log.d(TAG, "onRtcEvent() called with: eventDto = ${eventDto.type}")
-    }
-
-    override fun onRtcUpdate(rtcDto: RtcDtoUpdate) {
-        Log.d(TAG, "onRtcUpdate() called with: eventDto = ${rtcDto.type}")
-        update()
-    }
-
-    private fun update() {
-        val dataDtoRequest = DataDtoRequest(rtcClient?.localSdp)
-        val request = RtcDtoRequest(
-            type = "response",
-            transId = 0,
-            dataDto = dataDtoRequest
-        )
-        socketClient?.sendMessageToSocket(request)
-    }
-
-    private fun callRequest() {
+    private fun doCall() {
         runOnUiThread {
             setWhoToCallLayoutGone()
             setCallLayoutVisible()
             binding.apply {
                 rtcClient?.initializeSurfaceView(svrMyCamera)
                 rtcClient?.initializeSurfaceView(svr1)
+                rtcClient?.initializeSurfaceView(svr2)
+                rtcClient?.initializeSurfaceView(svr3)
                 rtcClient?.startLocalVideo(svrMyCamera)
-                rtcClient?.createOffer(targetUserNameEt.text.toString())
+                rtcClient?.createOffer()
             }
         }
     }
 
-    private fun offerResponse(sdp: String?) {
-        Log.d(TAG, "offerResponse: ccccccccc")
+    private fun createOffer(sdp: SessionDescription) {
+        val rtcDto = handleModel.createOffer(sdp.description)
+        socket?.sendMessageToSocket(rtcDto)
+    }
+
+    private fun offerResponse(sdp: String) {
         runOnUiThread {
-            val session = SessionDescription(SessionDescription.Type.ANSWER, rtcClient?.localSdp)
-            rtcClient?.setRemoteDesc(session)
+            val session = SessionDescription(SessionDescription.Type.ANSWER, sdp)
+            rtcClient?.setRemoteAnswer(session)
         }
     }
 
-    private fun answerResponse() {
-        val sdp = "sdp..."
-//        Log.d(TAG, "sdp: $sdp")
-
-        val session = SessionDescription(SessionDescription.Type.ANSWER, sdp)
-        rtcClient?.setRemoteDesc(session)
-        runOnUiThread {
-            hideLoading()
+    private fun update() {
+        rtcClient?.localSdp?.let { localSdp ->
+            val rtcDto = handleModel.update(localSdp)
+            socket?.sendMessageToSocket(rtcDto)
         }
-    }
-
-    private fun setIncomingCallLayoutGone() {
-        binding.incomingCallLayout.gone()
-    }
-
-    private fun setIncomingCallLayoutVisible() {
-        binding.incomingCallLayout.show()
-    }
-
-    private fun setCallLayoutGone() {
-        binding.callLayout.gone()
     }
 
     private fun setCallLayoutVisible() {
@@ -121,10 +85,6 @@ class SfuActivity : AppCompatActivity(), TriosSocketListener {
 
     private fun setWhoToCallLayoutGone() {
         binding.whoToCallLayout.gone()
-    }
-
-    private fun setWhoToCallLayoutVisible() {
-        binding.whoToCallLayout.show()
     }
 
     private fun showLoading() {
@@ -136,13 +96,46 @@ class SfuActivity : AppCompatActivity(), TriosSocketListener {
     }
 
 
+    /**
+     * socket
+     */
+
+    private val socketListener = object : TriosSocketListener {
+        override fun onRtcResponse(rtcDto: RtcDtoResponse) {
+            offerResponse(rtcDto.dataDto?.sdp ?: "")
+        }
+
+        override fun onRtcEvent(eventDto: EventDtoResponse) {}
+        override fun onRtcUpdate(rtcDto: RtcDtoUpdate) {
+            update()
+        }
+    }
+
+
+    /**
+     * peer connection
+     */
+
+    private val rtcListener = object : RTCListener {
+        override fun onSetLocalSdpOffer(state: State, sdp: SessionDescription) {
+            createOffer(sdp)
+        }
+    }
+
     private val peerConnectionObserverImpl = object : PeerConnectionObserver() {
         override fun onSignalingChange(p0: PeerConnection.SignalingState?) {
             Log.d(TAG, "onSignalingChange() called with: p0 = ${p0?.name}")
         }
 
         override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {
+            /**
+             * xử lý khi có new user kết nối tới SFU
+             */
+
             Log.d(TAG, "onIceConnectionChange() called with: p0 = ${p0?.name}")
+            if (p0 == PeerConnection.IceConnectionState.CONNECTED) {
+                // coding
+            }
         }
 
         override fun onIceConnectionReceivingChange(p0: Boolean) {
@@ -174,8 +167,13 @@ class SfuActivity : AppCompatActivity(), TriosSocketListener {
         }
 
         override fun onAddStream(p0: MediaStream?) {
+            /**
+             * có 1
+             */
             Log.d(TAG, "onAddStream() called with: p0 = ${p0?.id}")
             p0?.videoTracks?.get(0)?.addSink(binding.svr1)
+            p0?.videoTracks?.get(1)?.addSink(binding.svr2)
+            p0?.videoTracks?.get(2)?.addSink(binding.svr3)
         }
 
         override fun onRemoveStream(p0: MediaStream?) {

@@ -1,4 +1,4 @@
-package com.anhnd.webrtc.trios
+package com.anhnd.webrtc.trios.callback
 
 import org.webrtc.SdpObserver
 import org.webrtc.SessionDescription

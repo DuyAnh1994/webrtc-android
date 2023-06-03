@@ -1,7 +1,7 @@
 package com.anhnd.webrtc.p2p
 
 import android.app.Application
-import com.anhnd.webrtc.trios.SdpObserverImpl
+import com.anhnd.webrtc.trios.callback.SdpObserverImpl
 import com.anhnd.webrtc.p2p.models.MessageModel
 import org.webrtc.AudioTrack
 import org.webrtc.Camera2Enumerator
