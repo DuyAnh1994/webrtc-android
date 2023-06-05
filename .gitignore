@@ -7,4 +7,10 @@
 .externalNativeBuild
 .cxx
 local.properties
-/webrtc server/node_modules
+/webrtc server/p2p/node_moduls
+/webrtc server/p2p/.idea
+
+/webrtc server/sfu/node_moduls
+/webrtc server/sfu/.idea
+/webrtc server/sfu/server.cert
+/webrtc server/sfu/server.key
