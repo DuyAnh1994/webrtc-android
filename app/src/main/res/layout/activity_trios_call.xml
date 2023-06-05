@@ -96,7 +96,7 @@
                 android:elevation="16dp" />
 
             <org.webrtc.SurfaceViewRenderer
-                android:id="@+id/svr1"
+                android:id="@+id/svr0"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_margin="5dp"
@@ -112,14 +112,14 @@
             android:orientation="horizontal">
 
             <org.webrtc.SurfaceViewRenderer
-                android:id="@+id/svr2"
+                android:id="@+id/svr1"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_margin="5dp"
                 android:layout_weight="1" />
 
             <org.webrtc.SurfaceViewRenderer
-                android:id="@+id/svr3"
+                android:id="@+id/svr2"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_margin="5dp"

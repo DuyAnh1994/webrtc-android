@@ -1,7 +1,9 @@
 package com.anhnd.webrtc.trios
 
+import android.Manifest
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.ActivityTriosCallBinding
 import com.anhnd.webrtc.trios.model.call.request.DataDtoRequest
@@ -12,6 +14,7 @@ import com.anhnd.webrtc.trios.model.event.response.EventDtoResponse
 import com.anhnd.webrtc.utils.RTCAudioManager
 import com.anhnd.webrtc.utils.gone
 import com.anhnd.webrtc.utils.show
+import com.permissionx.guolindev.PermissionX
 import org.webrtc.DataChannel
 import org.webrtc.IceCandidate
 import org.webrtc.MediaStream
@@ -26,8 +29,8 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
     }
 
     lateinit var binding: ActivityTriosCallBinding
-    private var socketClient: com.anhnd.webrtc.trios.TriosSocket? = null
-    private var rtcClient: com.anhnd.webrtc.trios.TriosRTCClient? = null
+    private var socketClient: TriosSocket? = null
+    private var rtcClient: TriosRTCClient? = null
     private val rtcAudioManager by lazy { RTCAudioManager.create(this) }
     private val streamList = mutableListOf<MediaStream?>()
 
@@ -37,15 +40,24 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
         binding = ActivityTriosCallBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-//        val socketIO = TriosSocketIO()
-        socketClient = com.anhnd.webrtc.trios.TriosSocket(this)
-        rtcClient = com.anhnd.webrtc.trios.TriosRTCClient(
-            application = application,
-            socket = socketClient!!,
-            observer = peerConnectionObserverImpl
-        )
+        PermissionX.init(this)
+            .permissions(
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.CAMERA
+            ).request { allGranted, _, _ ->
+                if (allGranted) {
+                    socketClient = TriosSocket(this)
+                    rtcClient = TriosRTCClient(
+                        application = application,
+                        socket = socketClient!!,
+                        observer = peerConnectionObserverImpl
+                    )
+                    rtcAudioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.SPEAKER_PHONE)
+                } else {
+                    Toast.makeText(this, "you should accept all permissions", Toast.LENGTH_LONG).show()
+                }
+            }
 
-        rtcAudioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.SPEAKER_PHONE)
         binding.sendCmd.setOnClickListener {
             callRequest()
         }
@@ -84,9 +96,9 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
             setCallLayoutVisible()
             binding.apply {
                 rtcClient?.initializeSurfaceView(svrMyCamera)
-//                rtcClient?.initializeSurfaceView(svr1)
-//                rtcClient?.initializeSurfaceView(svr2)
-                rtcClient?.initializeSurfaceView(svr3)
+                rtcClient?.initializeSurfaceView(svr0)
+                rtcClient?.initializeSurfaceView(svr1)
+                rtcClient?.initializeSurfaceView(svr2)
                 rtcClient?.startLocalVideo(svrMyCamera)
 //                rtcClient?.createDataChannel("room 1")
                 rtcClient?.createOffer(targetUserNameEt.text.toString())
@@ -178,15 +190,25 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
 
         override fun onAddStream(p0: MediaStream?) {
             Log.d(TAG, "onAddStream() called with: p0 = ${p0?.id}")
-            streamList.add(p0)
-            streamList.forEachIndexed { i, v ->
+            p0?.videoTracks?.forEachIndexed { i, v ->
                 when (i) {
-                    0 -> v?.videoTracks?.get(0)?.addSink(binding.svr1)
-                    1 -> v?.videoTracks?.get(0)?.addSink(binding.svr2)
-                    2 -> v?.videoTracks?.get(0)?.addSink(binding.svr3)
+                    0 -> v.addSink(binding.svr0)
+                    1 -> v.addSink(binding.svr1)
+                    2 -> v.addSink(binding.svr2)
                     else -> {}
                 }
             }
+//            p0?.videoTracks?.get(0)?.addSink(binding.svr1)
+
+//            streamList.add(p0)
+//            streamList.forEachIndexed { i, v ->
+//                when (i) {
+//                    0 -> v?.videoTracks?.get(0)?.addSink(binding.svr1)
+//                    1 -> v?.videoTracks?.get(0)?.addSink(binding.svr2)
+//                    2 -> v?.videoTracks?.get(0)?.addSink(binding.svr3)
+//                    else -> {}
+//                }
+//            }
         }
 
         override fun onRemoveStream(p0: MediaStream?) {
