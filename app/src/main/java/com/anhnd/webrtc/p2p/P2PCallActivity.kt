@@ -9,7 +9,7 @@ import com.anhnd.webrtc.R
 import com.anhnd.webrtc.databinding.P2pCallActivityBinding
 import com.anhnd.webrtc.p2p.models.IceCandidateModel
 import com.anhnd.webrtc.p2p.models.MessageModel
-import com.anhnd.webrtc.utils.PeerConnectionObserver
+import com.anhnd.webrtc.utils.PeerConnectionObserverImpl
 import com.anhnd.webrtc.utils.RTCAudioManager
 import com.anhnd.webrtc.utils.TAG
 import com.google.gson.Gson
@@ -227,7 +227,7 @@ class P2PCallActivity : AppCompatActivity(), NewMessageInterface {
         binding.whoToCallLayout.visibility = View.VISIBLE
     }
 
-    private val peerConnectionObserverImpl = object : PeerConnectionObserver() {
+    private val peerConnectionObserverImpl = object : PeerConnectionObserverImpl() {
         override fun onSignalingChange(p0: PeerConnection.SignalingState?) {
             Log.d(TAG, "onSignalingChange() called with: p0 = ${p0?.name}")
         }

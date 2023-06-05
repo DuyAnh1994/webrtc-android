@@ -8,7 +8,7 @@ import org.webrtc.PeerConnection
 import org.webrtc.RtpReceiver
 import org.webrtc.RtpTransceiver
 
-open class PeerConnectionObserver : PeerConnection.Observer {
+open class PeerConnectionObserverImpl : PeerConnection.Observer {
     override fun onSignalingChange(p0: PeerConnection.SignalingState?) {}
     override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {}
     override fun onIceConnectionReceivingChange(p0: Boolean) {}

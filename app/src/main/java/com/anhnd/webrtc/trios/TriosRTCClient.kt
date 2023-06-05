@@ -69,16 +69,6 @@ class TriosRTCClient(
 
     init {
         initPeerConnectionFactory()
-        val remoteTrack = MediaStreamTrack(1)
-        val sender: RtpSender? = peerConnection?.addTrack(remoteTrack)
-        val receiverList = peerConnection?.receivers
-        val receiver: RtpReceiver? = receiverList?.firstOrNull {
-            it.track() == remoteTrack
-        }
-
-        receiver?.SetObserver {
-
-        }
     }
 
     fun createOffer() {

@@ -9,7 +9,7 @@ import com.anhnd.webrtc.trios.callback.State
 import com.anhnd.webrtc.trios.model.call.response.RtcDtoResponse
 import com.anhnd.webrtc.trios.model.call.update.RtcDtoUpdate
 import com.anhnd.webrtc.trios.model.event.response.EventDtoResponse
-import com.anhnd.webrtc.utils.PeerConnectionObserver
+import com.anhnd.webrtc.utils.PeerConnectionObserverImpl
 import com.anhnd.webrtc.utils.RTCAudioManager
 import com.anhnd.webrtc.utils.TAG
 import com.anhnd.webrtc.utils.gone
@@ -122,7 +122,7 @@ class SfuActivity : AppCompatActivity() {
         }
     }
 
-    private val peerConnectionObserverImpl = object : PeerConnectionObserver() {
+    private val peerConnectionObserverImpl = object : PeerConnectionObserverImpl() {
         override fun onSignalingChange(p0: PeerConnection.SignalingState?) {
             Log.d(TAG, "onSignalingChange() called with: p0 = ${p0?.name}")
         }
@@ -166,9 +166,13 @@ class SfuActivity : AppCompatActivity() {
             Log.d(TAG, "onIceCandidatesRemoved() called with: p0 = ${p0?.count()}")
         }
 
+        override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {
+            Log.d(TAG, "onAddTrack() called with: p0 = $p0, p1 = ${p1?.count()}")
+        }
+
         override fun onAddStream(p0: MediaStream?) {
             /**
-             * có 1
+             * có stream mới trong luồng
              */
             Log.d(TAG, "onAddStream() called with: p0 = ${p0?.id}")
             p0?.videoTracks?.get(0)?.addSink(binding.svr1)
@@ -186,10 +190,6 @@ class SfuActivity : AppCompatActivity() {
 
         override fun onRenegotiationNeeded() {
             Log.d(TAG, "onRenegotiationNeeded() called")
-        }
-
-        override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {
-            Log.d(TAG, "onAddTrack() called with: p0 = $p0, p1 = ${p1?.count()}")
         }
     }
 }
