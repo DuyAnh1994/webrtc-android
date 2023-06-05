@@ -145,8 +145,8 @@ class TriosRTCClient(
             val localStream = peerConnectionFactory.createLocalMediaStream("local_stream")
             localStream.addTrack(localAudioTrack)
             localStream.addTrack(localVideoTrack)
-
-
+            peerConnection?.addTrack(localAudioTrack, listOf(localStream.id))
+            peerConnection?.addTrack(localVideoTrack, listOf(localStream.id))
 //            peerConnection?.addStream(localStream) // TODO: crash nếu create instance peer connection with RTCConfiguration
         } catch (e: Exception) {
             e.printStackTrace()
@@ -224,12 +224,12 @@ class TriosRTCClient(
         peerConnection?.setRemoteDescription(sdpObserver, session)
     }
 
-    fun createAnswer(target: String? = null, onSuccess: () -> Unit = {}) {
+    fun createAnswer(target: String? = null, onSuccess: (desc: SessionDescription?) -> Unit = {}) {
         val sdpObserver = object : SdpObserver {
             override fun onCreateSuccess(desc: SessionDescription?) {
                 Log.d(TAG, "onCreateSuccess() called with: desc = $desc")
                 setLocalDesc(desc)
-                onSuccess.invoke()
+                onSuccess.invoke(desc)
             }
 
             override fun onSetSuccess() {

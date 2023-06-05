@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.codewithkael.webrtcprojectforrecord.databinding.ActivityTriosCallBinding
 import com.codewithkael.webrtcprojectforrecord.trios.model.call.request.DataDtoRequest
 import com.codewithkael.webrtcprojectforrecord.trios.model.call.request.RtcDtoRequest
+import com.codewithkael.webrtcprojectforrecord.trios.model.call.request.RtcDtoResponse2
 import com.codewithkael.webrtcprojectforrecord.trios.model.call.response.RtcDtoResponse
 import com.codewithkael.webrtcprojectforrecord.trios.model.call.update.RtcDtoUpdate
 import com.codewithkael.webrtcprojectforrecord.trios.model.event.response.EventDtoResponse
@@ -13,6 +14,8 @@ import com.codewithkael.webrtcprojectforrecord.utils.PeerConnectionObserver
 import com.codewithkael.webrtcprojectforrecord.utils.RTCAudioManager
 import com.codewithkael.webrtcprojectforrecord.utils.gone
 import com.codewithkael.webrtcprojectforrecord.utils.show
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import org.webrtc.DataChannel
 import org.webrtc.IceCandidate
 import org.webrtc.MediaStream
@@ -49,11 +52,10 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
             callRequest()
         }
     }
-
+    private val gson = GsonBuilder().disableHtmlEscaping().create();
     override fun onRtcResponse(rtcDto: RtcDtoResponse) {
         Log.d(TAG, "onRtcResponse() called with: rtcDto = ${rtcDto.type}")
                 offerResponse(rtcDto.dataDto?.sdp)
-
     }
 
     override fun onRtcEvent(eventDto: EventDtoResponse) {
@@ -66,13 +68,18 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
     }
 
     private fun update(rtcDto: RtcDtoUpdate) {
-        val dataDtoRequest = DataDtoRequest(sdp = rtcDto.dataDto?.sdp)
-        val request = RtcDtoRequest(
-            type = "response",
-            transId = 0,
-            dataDto = dataDtoRequest
-        )
-        socketClient?.sendMessageToSocket(request)
+        val offer = SessionDescription(SessionDescription.Type.OFFER, rtcDto.dataDto?.sdp)
+        rtcClient?.setRemoteDesc(offer)
+        rtcClient?.createAnswer {
+            val request = RtcDtoRequest(
+                type = "response",
+                transId = 0,
+                dataDto = DataDtoRequest(sdp = it?.description)
+            )
+            socketClient?.sendMessageToSocket(request)
+        }
+
+
     }
 
     private fun callRequest() {
@@ -147,7 +154,7 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
     }
 
 
-    private val peerConnectionObserverImpl = object : PeerConnectionObserver() {
+    private val peerConnectionObserverImpl = object : PeerConnection.Observer {
         override fun onSignalingChange(p0: PeerConnection.SignalingState?) {
             Log.d(TAG, "onSignalingChange() called with: p0 = ${p0?.name}")
         }

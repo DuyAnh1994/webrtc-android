@@ -3,10 +3,12 @@ package com.codewithkael.webrtcprojectforrecord.trios
 import android.util.Log
 import com.codewithkael.webrtcprojectforrecord.trios.model.base.RtcBaseResponse
 import com.codewithkael.webrtcprojectforrecord.trios.model.call.request.RtcDtoRequest
+import com.codewithkael.webrtcprojectforrecord.trios.model.call.request.RtcDtoResponse2
 import com.codewithkael.webrtcprojectforrecord.trios.model.call.response.RtcDtoResponse
 import com.codewithkael.webrtcprojectforrecord.trios.model.call.update.RtcDtoUpdate
 import com.codewithkael.webrtcprojectforrecord.trios.model.event.response.EventDtoResponse
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
@@ -16,12 +18,12 @@ class TriosSocket(private val listener: TriosSocketListener) {
 
     companion object {
         private const val TAG = "TriosSocket"
-        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=1"
+        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=5"
 //        private const val WS_URL = "http://localhost:8080"
     }
 
     private var webSocket: WebSocketClient? = null
-    private val gson = Gson()
+    private val gson = GsonBuilder().disableHtmlEscaping().create()
 
     init {
         initSocket()
@@ -62,6 +64,16 @@ class TriosSocket(private val listener: TriosSocketListener) {
     }
 
     fun sendMessageToSocket(rtcDto: RtcDtoRequest) {
+        try {
+            val json = gson.toJson(rtcDto)
+            Log.d(TAG, "send json: $json")
+            webSocket?.send(json)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun sendMessageToSocket(rtcDto: RtcDtoResponse2) {
         try {
             val json = gson.toJson(rtcDto)
             Log.d(TAG, "send json: $json")
