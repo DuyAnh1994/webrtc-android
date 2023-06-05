@@ -87,7 +87,72 @@ class TriosRTCClient(
         initPeerConnectionFactory()
     }
 
-    fun createOffer() {
+        return peerConnectionFactory.createPeerConnection(rtcConfiguration, observer)
+    }
+
+    fun initializeSurfaceView(surface: SurfaceViewRenderer) {
+        surface.run {
+            setEnableHardwareScaler(true)
+            setMirror(true)
+            init(eglContext.eglBaseContext, null)
+        }
+    }
+
+    fun startLocalVideo(surface: SurfaceViewRenderer) {
+        try {
+            val surfaceTextureHelper =
+                SurfaceTextureHelper.create(Thread.currentThread().name, eglContext.eglBaseContext)
+            videoCapturer = getVideoCapturer(application)
+            videoCapturer?.initialize(
+                surfaceTextureHelper,
+                surface.context,
+                localVideoSource.capturerObserver
+            )
+            videoCapturer?.startCapture(1920, 1080, 60)
+
+            localVideoTrack = peerConnectionFactory.createVideoTrack("local_track", localVideoSource)
+            localVideoTrack?.addSink(surface)
+            localAudioTrack = peerConnectionFactory.createAudioTrack("local_track_audio", localAudioSource)
+
+            val localStream = peerConnectionFactory.createLocalMediaStream("local_stream")
+            localStream.addTrack(localAudioTrack)
+            localStream.addTrack(localVideoTrack)
+            peerConnection?.addTrack(localAudioTrack, listOf(localStream.id))
+            peerConnection?.addTrack(localVideoTrack, listOf(localStream.id))
+//            peerConnection?.addStream(localStream) // TODO: crash nếu create instance peer connection with RTCConfiguration
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun createDataChannel(room: String) {
+        val observer = object : DataChannel.Observer {
+            override fun onBufferedAmountChange(p0: Long) {
+                Log.d(TAG, "onBufferedAmountChange() called with: p0 = $p0")
+            }
+
+            override fun onStateChange() {
+                Log.d(TAG, "onStateChange() called")
+            }
+
+            override fun onMessage(p0: DataChannel.Buffer?) {
+                Log.d(TAG, "onMessage() called with: p0 = $p0")
+            }
+        }
+
+        dataChannel = peerConnection?.createDataChannel(room, DataChannel.Init())
+        dataChannel?.registerObserver(observer)
+    }
+
+    private fun getVideoCapturer(application: Application): CameraVideoCapturer {
+        return Camera2Enumerator(application).run {
+            deviceNames.find { isFrontFacing(it) }?.let {
+                createCapturer(it, null)
+            } ?: throw IllegalStateException()
+        }
+    }
+
+    fun createOffer(target: String? = null) {
 //        val mediaConstraints = MediaConstraints().apply {
 //            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
 //            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
@@ -141,11 +206,12 @@ class TriosRTCClient(
             mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
         }
 
+    fun createAnswer(target: String? = null, onSuccess: (desc: SessionDescription?) -> Unit = {}) {
         val sdpObserver = object : SdpObserver {
             override fun onCreateSuccess(desc: SessionDescription?) {
                 Log.d(TAG, "onCreateSuccess() called with: desc = $desc")
                 setLocalDesc(desc)
-                onSuccess.invoke()
+                onSuccess.invoke(desc)
             }
 
             override fun onSetSuccess() {

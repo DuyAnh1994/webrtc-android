@@ -7,6 +7,12 @@ import com.anhnd.webrtc.trios.model.call.response.RtcDtoResponse
 import com.anhnd.webrtc.trios.model.call.update.RtcDtoUpdate
 import com.anhnd.webrtc.trios.model.event.response.EventDtoResponse
 import com.anhnd.webrtc.utils.TAG
+import com.codewithkael.webrtcprojectforrecord.trios.model.base.RtcBaseResponse
+import com.codewithkael.webrtcprojectforrecord.trios.model.call.request.RtcDtoRequest
+import com.codewithkael.webrtcprojectforrecord.trios.model.call.request.RtcDtoResponse2
+import com.codewithkael.webrtcprojectforrecord.trios.model.call.response.RtcDtoResponse
+import com.codewithkael.webrtcprojectforrecord.trios.model.call.update.RtcDtoUpdate
+import com.codewithkael.webrtcprojectforrecord.trios.model.event.response.EventDtoResponse
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import org.java_websocket.client.WebSocketClient
@@ -63,6 +69,16 @@ class TriosSocket(private val listener: TriosSocketListener) {
     }
 
     fun sendMessageToSocket(rtcDto: RtcDtoRequest) {
+        try {
+            val json = gson.toJson(rtcDto)
+            Log.d(TAG, "send json: $json")
+            webSocket?.send(json)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun sendMessageToSocket(rtcDto: RtcDtoResponse2) {
         try {
             val json = gson.toJson(rtcDto)
             Log.d(TAG, "send json: $json")

@@ -22,3 +22,12 @@ data class RtcDtoResponse2(
 
     @SerializedName("data") var dataDto: String? = null
 )
+
+
+data class RtcDtoResponse2(
+    @SerializedName("type") var type: String? = null,
+
+    @SerializedName("transId") var transId: Int? = null,
+
+    @SerializedName("data") var dataDto: String? = null
+)

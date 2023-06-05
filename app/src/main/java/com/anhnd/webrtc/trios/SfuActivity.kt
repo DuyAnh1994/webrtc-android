@@ -6,8 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.SfuActivityBinding
 import com.anhnd.webrtc.trios.callback.RTCListener
 import com.anhnd.webrtc.trios.callback.State
-import com.anhnd.webrtc.trios.model.call.request.DataDtoRequest
-import com.anhnd.webrtc.trios.model.call.request.RtcDtoRequest
 import com.anhnd.webrtc.trios.model.call.response.RtcDtoResponse
 import com.anhnd.webrtc.trios.model.call.update.RtcDtoUpdate
 import com.anhnd.webrtc.trios.model.event.response.EventDtoResponse
@@ -15,6 +13,8 @@ import com.anhnd.webrtc.utils.RTCAudioManager
 import com.anhnd.webrtc.utils.TAG
 import com.anhnd.webrtc.utils.gone
 import com.anhnd.webrtc.utils.show
+import com.codewithkael.webrtcprojectforrecord.utils.gone
+import com.codewithkael.webrtcprojectforrecord.utils.show
 import com.google.gson.GsonBuilder
 import org.webrtc.DataChannel
 import org.webrtc.IceCandidate
@@ -83,6 +83,21 @@ class SfuActivity : AppCompatActivity() {
             socket?.sendMessageToSocket(rtcDto)
         }
     }
+
+//    private fun update(rtcDto: RtcDtoUpdate) {
+//        val offer = SessionDescription(SessionDescription.Type.OFFER, rtcDto.dataDto?.sdp)
+//        rtcClient?.setRemoteDesc(offer)
+//        rtcClient?.createAnswer {
+//            val request = RtcDtoRequest(
+//                type = "response",
+//                transId = 0,
+//                dataDto = DataDtoRequest(sdp = it?.description)
+//            )
+//            socketClient?.sendMessageToSocket(request)
+//        }
+//
+//
+//    }
 
     private fun setCallLayoutVisible() {
         binding.callLayout.show()
@@ -198,4 +213,63 @@ class SfuActivity : AppCompatActivity() {
             Log.d(TAG, "onRenegotiationNeeded() called")
         }
     }
+
+//    private val peerConnectionObserverImpl = object : PeerConnection.Observer {
+//        override fun onSignalingChange(p0: PeerConnection.SignalingState?) {
+//            Log.d(TAG, "onSignalingChange() called with: p0 = ${p0?.name}")
+//        }
+//
+//        override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {
+//            Log.d(TAG, "onIceConnectionChange() called with: p0 = ${p0?.name}")
+//        }
+//
+//        override fun onIceConnectionReceivingChange(p0: Boolean) {
+//            Log.d(TAG, "onIceConnectionReceivingChange() called with: p0 = $p0")
+//        }
+//
+//        override fun onIceGatheringChange(p0: PeerConnection.IceGatheringState?) {
+//            Log.d(TAG, "onIceGatheringChange() called with: p0 = ${p0?.name}")
+//        }
+//
+//        override fun onIceCandidate(p0: IceCandidate?) {
+////            Log.d(TAG, "onIceCandidate() called with: p0 = $p0")
+//
+//            rtcClient?.addIceCandidate(p0)
+//
+////                val candidate = hashMapOf(
+////                    "sdpMid" to p0?.sdpMid,
+////                    "sdpMLineIndex" to p0?.sdpMLineIndex,
+////                    "sdpCandidate" to p0?.sdp
+////                )
+//
+////                socketRepository?.sendMessageToSocket(
+////                    MessageModel("ice_candidate", userName, target, candidate)
+////                )
+//        }
+//
+//        override fun onIceCandidatesRemoved(p0: Array<out IceCandidate>?) {
+//            Log.d(TAG, "onIceCandidatesRemoved() called with: p0 = ${p0?.count()}")
+//        }
+//
+//        override fun onAddStream(p0: MediaStream?) {
+//            Log.d(TAG, "onAddStream() called with: p0 = ${p0?.id}")
+//            p0?.videoTracks?.get(0)?.addSink(binding.remoteView)
+//        }
+//
+//        override fun onRemoveStream(p0: MediaStream?) {
+//            Log.d(TAG, "onRemoveStream() called with: p0 = ${p0?.id}")
+//        }
+//
+//        override fun onDataChannel(p0: DataChannel?) {
+//            Log.d(TAG, "onDataChannel() called with: p0 = $p0")
+//        }
+//
+//        override fun onRenegotiationNeeded() {
+//            Log.d(TAG, "onRenegotiationNeeded() called")
+//        }
+//
+//        override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {
+//            Log.d(TAG, "onAddTrack() called with: p0 = $p0, p1 = ${p1?.count()}")
+//        }
+//    }
 }
