@@ -8,6 +8,7 @@ import com.anhnd.webrtc.trios.model.call.update.RtcDtoUpdate
 import com.anhnd.webrtc.trios.model.event.response.EventDtoResponse
 import com.anhnd.webrtc.utils.TAG
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
@@ -21,7 +22,7 @@ class TriosSocket(private val listener: TriosSocketListener) {
     }
 
     private var webSocket: WebSocketClient? = null
-    private val gson = Gson()
+    private val gson = GsonBuilder().disableHtmlEscaping().create()
 
     init {
         initSocket()

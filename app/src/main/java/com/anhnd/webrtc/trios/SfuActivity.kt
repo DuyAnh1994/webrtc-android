@@ -6,14 +6,16 @@ import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.SfuActivityBinding
 import com.anhnd.webrtc.trios.callback.RTCListener
 import com.anhnd.webrtc.trios.callback.State
+import com.anhnd.webrtc.trios.model.call.request.DataDtoRequest
+import com.anhnd.webrtc.trios.model.call.request.RtcDtoRequest
 import com.anhnd.webrtc.trios.model.call.response.RtcDtoResponse
 import com.anhnd.webrtc.trios.model.call.update.RtcDtoUpdate
 import com.anhnd.webrtc.trios.model.event.response.EventDtoResponse
-import com.anhnd.webrtc.utils.PeerConnectionObserverImpl
 import com.anhnd.webrtc.utils.RTCAudioManager
 import com.anhnd.webrtc.utils.TAG
 import com.anhnd.webrtc.utils.gone
 import com.anhnd.webrtc.utils.show
+import com.google.gson.GsonBuilder
 import org.webrtc.DataChannel
 import org.webrtc.IceCandidate
 import org.webrtc.MediaStream
@@ -28,6 +30,7 @@ class SfuActivity : AppCompatActivity() {
     private var socket: TriosSocket? = null
     private val handleModel by lazy { HandleModel() }
     private val rtcAudioManager by lazy { RTCAudioManager.create(this) }
+    private val gson = GsonBuilder().disableHtmlEscaping().create();
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,16 +68,18 @@ class SfuActivity : AppCompatActivity() {
         socket?.sendMessageToSocket(rtcDto)
     }
 
-    private fun offerResponse(sdp: String) {
+    private fun offerResponse(sdp: String?) {
         runOnUiThread {
             val session = SessionDescription(SessionDescription.Type.ANSWER, sdp)
             rtcClient?.setRemoteAnswer(session)
         }
     }
 
-    private fun update() {
-        rtcClient?.localSdp?.let { localSdp ->
-            val rtcDto = handleModel.update(localSdp)
+    private fun update(sdp: String?) {
+        val offer = SessionDescription(SessionDescription.Type.OFFER, sdp)
+        rtcClient?.setRemoteAnswer(offer)
+        rtcClient?.createAnswer {
+            val rtcDto = handleModel.update(sdp)
             socket?.sendMessageToSocket(rtcDto)
         }
     }
@@ -102,13 +107,14 @@ class SfuActivity : AppCompatActivity() {
 
     private val socketListener = object : TriosSocketListener {
         override fun onRtcResponse(rtcDto: RtcDtoResponse) {
-            offerResponse(rtcDto.dataDto?.sdp ?: "")
+            offerResponse(rtcDto.getSdp())
+        }
+
+        override fun onRtcUpdate(rtcDto: RtcDtoUpdate) {
+            update(rtcDto.dataDto?.sdp)
         }
 
         override fun onRtcEvent(eventDto: EventDtoResponse) {}
-        override fun onRtcUpdate(rtcDto: RtcDtoUpdate) {
-            update()
-        }
     }
 
 
@@ -122,7 +128,7 @@ class SfuActivity : AppCompatActivity() {
         }
     }
 
-    private val peerConnectionObserverImpl = object : PeerConnectionObserverImpl() {
+    private val peerConnectionObserverImpl = object : PeerConnection.Observer {
         override fun onSignalingChange(p0: PeerConnection.SignalingState?) {
             Log.d(TAG, "onSignalingChange() called with: p0 = ${p0?.name}")
         }
@@ -176,8 +182,8 @@ class SfuActivity : AppCompatActivity() {
              */
             Log.d(TAG, "onAddStream() called with: p0 = ${p0?.id}")
             p0?.videoTracks?.get(0)?.addSink(binding.svr1)
-            p0?.videoTracks?.get(1)?.addSink(binding.svr2)
-            p0?.videoTracks?.get(2)?.addSink(binding.svr3)
+//            p0?.videoTracks?.get(1)?.addSink(binding.svr2)
+//            p0?.videoTracks?.get(2)?.addSink(binding.svr3)
         }
 
         override fun onRemoveStream(p0: MediaStream?) {

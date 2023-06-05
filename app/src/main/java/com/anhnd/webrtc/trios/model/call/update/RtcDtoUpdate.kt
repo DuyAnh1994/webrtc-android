@@ -9,4 +9,9 @@ data class RtcDtoUpdate(
 
     @SerializedName("data") var dataDto: DataDtoUpdate? = null
 
-) : RtcBaseResponse()
+) : RtcBaseResponse() {
+
+    fun getSdp(): String? {
+        return dataDto?.sdp
+    }
+}

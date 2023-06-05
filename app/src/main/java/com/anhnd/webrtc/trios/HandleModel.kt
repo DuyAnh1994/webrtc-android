@@ -22,13 +22,13 @@ class HandleModel {
     }
 
 
-    fun update(sdp: String): RtcDtoRequest {
+    fun update(sdp: String?): RtcDtoRequest {
         val dataDtoRequest = DataDtoRequest(sdp = sdp)
 
         val rtcDto = RtcDtoRequest(
             type = "response",
             transId = 0,
-            dataDto = dataDtoRequest
+            dataDto = DataDtoRequest(sdp = sdp)
         )
 
         return rtcDto
