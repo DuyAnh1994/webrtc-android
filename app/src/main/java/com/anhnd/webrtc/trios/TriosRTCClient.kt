@@ -2,8 +2,10 @@ package com.anhnd.webrtc.trios
 
 import android.app.Application
 import android.util.Log
-import com.anhnd.webrtc.trios.model.call.request.DataDtoRequest
-import com.anhnd.webrtc.trios.model.call.request.RtcDtoRequest
+import com.anhnd.webrtc.trios.callback.RTCListener
+import com.anhnd.webrtc.trios.callback.SdpObserverImpl
+import com.anhnd.webrtc.trios.callback.State
+import com.anhnd.webrtc.utils.TAG
 import org.webrtc.AudioTrack
 import org.webrtc.Camera2Enumerator
 import org.webrtc.CameraVideoCapturer
@@ -24,31 +26,31 @@ import org.webrtc.VideoTrack
 
 class TriosRTCClient(
     private val application: Application,
-    private val socket: TriosSocket,
-    private val observer: PeerConnection.Observer
+    private val observer: PeerConnection.Observer,
+    private val listener: RTCListener? = null
 ) {
 
     companion object {
-        private const val TAG = "TriosRTCClient"
-
         //        private const val RTC_URL = "turn:turn-dev01.gtrios.io:3478"
         private const val RTC_URL = "turn:dev.turn2.gtrios.io:3478"
         private const val USERNAME = "bgldemo"
         private const val PASSWORD = "bgltest"
     }
 
+
+    /**
+     * peer
+     */
+    private val peerFactory by lazy { createPeerConnectionFactory() }
+    private val peerConnection by lazy { createPeerConnection() }
     private val eglContext = EglBase.create()
-    private val peerConnectionFactory by lazy { createPeerConnectionFactory() }
-
-    private val peerConnection by lazy { createPeerConnection(observer) }
-    private val localVideoSource by lazy { peerConnectionFactory.createVideoSource(false) }
-    private val localAudioSource by lazy { peerConnectionFactory.createAudioSource(MediaConstraints()) }
-    private var videoCapturer: CameraVideoCapturer? = null
-    private var localAudioTrack: AudioTrack? = null
-    private var localVideoTrack: VideoTrack? = null
-
+    private val iceServer: List<PeerConnection.IceServer> = listOf(
+        PeerConnection.IceServer.builder(RTC_URL)
+            .setUsername(USERNAME)
+            .setPassword(PASSWORD)
+            .createIceServer()
+    )
     private var dataChannel: DataChannel? = null
-
 
     private val mediaConstraints = MediaConstraints().apply {
         mandatory?.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
@@ -66,170 +68,83 @@ class TriosRTCClient(
         mandatory.add(MediaConstraints.KeyValuePair("maxHeight", Integer.toString(1920)));
         mandatory.add(MediaConstraints.KeyValuePair("maxWidth", Integer.toString(1080)));
         mandatory.add(MediaConstraints.KeyValuePair("maxFrameRate", Integer.toString(60)));
-        mandatory.add(MediaConstraints.KeyValuePair("minFrameRate", Integer.toString(1)))
+        mandatory.add(MediaConstraints.KeyValuePair("minFrameRate", Integer.toString(30)))
     }
+
+    /**
+     * local
+     */
+    private val localVideoSource by lazy { peerFactory.createVideoSource(false) }
+    private val localAudioSource by lazy { peerFactory.createAudioSource(MediaConstraints()) }
+    private var localVideoCapturer: CameraVideoCapturer? = null
+    private var localAudioTrack: AudioTrack? = null
+    private var localVideoTrack: VideoTrack? = null
+    var localSdp: String? = ""
 
 
     init {
-        initPeerConnectionFactory(application)
+        initPeerConnectionFactory()
     }
 
+    fun createOffer() {
+//        val mediaConstraints = MediaConstraints().apply {
+//            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
+//            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
+//        }
 
-    private fun initPeerConnectionFactory(application: Application) {
-        val peerConnectionOption = PeerConnectionFactory.InitializationOptions.builder(application)
-            .setEnableInternalTracer(true)
-            .setFieldTrials("WebRTC-H264HighProfile/Enabled/")
-            .createInitializationOptions()
-
-        PeerConnectionFactory.initialize(peerConnectionOption)
-    }
-
-    private fun createPeerConnectionFactory(): PeerConnectionFactory {
-        val encoderFactory = DefaultVideoEncoderFactory(eglContext.eglBaseContext, true, true)
-        val decoderFactory = DefaultVideoDecoderFactory(eglContext.eglBaseContext)
-        val option = PeerConnectionFactory.Options()
-
-        val builder: PeerConnectionFactory.Builder = PeerConnectionFactory.builder()
-            .setVideoEncoderFactory(encoderFactory)
-            .setVideoDecoderFactory(decoderFactory)
-            .setOptions(option)
-
-        return builder.createPeerConnectionFactory()
-    }
-
-    private fun createPeerConnection(observer: PeerConnection.Observer): PeerConnection? {
-        val iceServer = listOf(
-            PeerConnection.IceServer.builder(RTC_URL)
-                .setUsername(USERNAME)
-                .setPassword(PASSWORD)
-                .createIceServer()
-        )
-
-        val rtcConfiguration = RTCConfiguration(iceServer).apply {
-            iceTransportsType = PeerConnection.IceTransportsType.ALL
-            bundlePolicy = PeerConnection.BundlePolicy.MAXCOMPAT
-            disableIpv6 = true
-            disableIPv6OnWifi = true
-            sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
-            iceBackupCandidatePairPingInterval = 1000
-            candidateNetworkPolicy = PeerConnection.CandidateNetworkPolicy.ALL
-        }
-
-        return peerConnectionFactory.createPeerConnection(rtcConfiguration, observer)
-    }
-
-    fun initializeSurfaceView(surface: SurfaceViewRenderer) {
-        surface.run {
-            setEnableHardwareScaler(true)
-            setMirror(true)
-            init(eglContext.eglBaseContext, null)
-        }
-    }
-
-    fun startLocalVideo(surface: SurfaceViewRenderer) {
-        try {
-            val surfaceTextureHelper =
-                SurfaceTextureHelper.create(Thread.currentThread().name, eglContext.eglBaseContext)
-            videoCapturer = getVideoCapturer(application)
-            videoCapturer?.initialize(
-                surfaceTextureHelper,
-                surface.context,
-                localVideoSource.capturerObserver
-            )
-            videoCapturer?.startCapture(320, 240, 30)
-
-            localVideoTrack = peerConnectionFactory.createVideoTrack("local_track", localVideoSource)
-            localVideoTrack?.addSink(surface)
-            localAudioTrack = peerConnectionFactory.createAudioTrack("local_track_audio", localAudioSource)
-
-            val localStream = peerConnectionFactory.createLocalMediaStream("local_stream")
-//            localStream.addTrack(localAudioTrack)
-            localStream.addTrack(localVideoTrack)
-//            peerConnection?.addTrack(localAudioTrack, listOf(localStream.id))
-            peerConnection?.addTrack(localVideoTrack, listOf(localStream.id))
-//            peerConnection?.addStream(localStream) // TODO: crash nếu create instance peer connection with RTCConfiguration
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    fun createDataChannel(room: String) {
-        val observer = object : DataChannel.Observer {
-            override fun onBufferedAmountChange(p0: Long) {
-                Log.d(TAG, "onBufferedAmountChange() called with: p0 = $p0")
-            }
-
-            override fun onStateChange() {
-                Log.d(TAG, "onStateChange() called")
-            }
-
-            override fun onMessage(p0: DataChannel.Buffer?) {
-                Log.d(TAG, "onMessage() called with: p0 = $p0")
-            }
-        }
-
-        dataChannel = peerConnection?.createDataChannel(room, DataChannel.Init())
-        dataChannel?.registerObserver(observer)
-    }
-
-    private fun getVideoCapturer(application: Application): CameraVideoCapturer {
-        return Camera2Enumerator(application).run {
-            deviceNames.find { isFrontFacing(it) }?.let {
-                createCapturer(it, null)
-            } ?: throw IllegalStateException()
-        }
-    }
-
-    fun createOffer(target: String? = null) {
-
-        val sdpObserverByCreate = object : com.anhnd.webrtc.trios.SdpObserverImpl() {
+        val sdpObserverByCreate = object : SdpObserverImpl() {
             override fun onCreateSuccess(desc: SessionDescription?) {
-                setLocalDescAfterCreateOffer(target, desc)
+                Log.d(TAG, "1. createOffer ===> [SUCCESS]   type=[${desc?.type?.name}]   sdp=[ ... ]")
+                setLocalOffer(desc)
             }
         }
 
         peerConnection?.createOffer(sdpObserverByCreate, mediaConstraints)
     }
 
-    private fun setLocalDescAfterCreateOffer(
-        target: String?,
-        spAfterCreateOffer: SessionDescription?
-    ) {
-        val sdpObserver = object : com.anhnd.webrtc.trios.SdpObserverImpl() {
+    private fun setLocalOffer(sdp: SessionDescription?) {
+        val sdpObserver = object : SdpObserverImpl() {
             override fun onSetSuccess() {
-                val dataDto = DataDtoRequest(
-                    name = target,
-                    sdp = spAfterCreateOffer?.description
-                )
-
-                val rtcDto = RtcDtoRequest(
-                    type = "cmd",
-                    transId = 0,
-                    name = "join",
-                    dataDto = dataDto
-                )
-
-                // send socket cmd create offer
-                socket.sendMessageToSocket(rtcDto)
+                Log.d(TAG, "2. setLocal(offer) ===> [SUCCESS]")
+                sdp?.let {
+                    localSdp = it.description
+                    listener?.onSetLocalSdpOffer(state = State.SUCCESS, sdp = it)
+                }
             }
         }
 
-        peerConnection?.setLocalDescription(sdpObserver, spAfterCreateOffer)
+        peerConnection?.setLocalDescription(sdpObserver, sdp)
     }
 
-    fun setRemoteDesc(session: SessionDescription) {
-        Log.d(TAG, "setRemoteDesc: 1")
-        val sdpObserver = object : com.anhnd.webrtc.trios.SdpObserverImpl() {}
+    fun setRemoteAnswer(sdp: SessionDescription) {
+        val sdpObserver = object : SdpObserverImpl() {
+            override fun onSetSuccess() {
+                Log.d(TAG, "3. setRemote(    ) ===> [SUCCESS] type[${sdp.type.name}]   sdp=[ ... ]")
+            }
 
-        peerConnection?.setRemoteDescription(sdpObserver, session)
+            override fun onSetFailure(p0: String?) {
+                Log.d(TAG, "onSetFailure: $p0")
+            }
+        }
+
+        peerConnection?.setRemoteDescription(sdpObserver, sdp)
     }
 
-    fun createAnswer(target: String? = null, onSuccess: (desc: SessionDescription?) -> Unit = {}) {
+    fun addIceCandidate(p0: IceCandidate?) {
+        peerConnection?.addIceCandidate(p0)
+    }
+
+    fun createAnswer(target: String? = null, onSuccess: () -> Unit = {}) {
+        val mediaConstraints = MediaConstraints().apply {
+            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
+            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
+        }
+
         val sdpObserver = object : SdpObserver {
             override fun onCreateSuccess(desc: SessionDescription?) {
                 Log.d(TAG, "onCreateSuccess() called with: desc = $desc")
                 setLocalDesc(desc)
-                onSuccess.invoke(desc)
+                onSuccess.invoke()
             }
 
             override fun onSetSuccess() {
@@ -253,15 +168,7 @@ class TriosRTCClient(
     private fun setLocalDesc(desc: SessionDescription?) {
         val sdpObserver = object : SdpObserver {
             override fun onCreateSuccess(p0: SessionDescription?) {}
-            override fun onSetSuccess() {
-//                val answer = hashMapOf("sdp" to desc?.description, "type" to desc?.type)
-
-                // send socket cmd create answer
-//                        socket.sendMessageToSocket("")
-
-                Log.d(TAG, "onSetSuccess() called ccccccccccccccccccccccccccc")
-            }
-
+            override fun onSetSuccess() {}
             override fun onCreateFailure(p0: String?) {}
             override fun onSetFailure(p0: String?) {}
         }
@@ -269,23 +176,98 @@ class TriosRTCClient(
         peerConnection?.setLocalDescription(sdpObserver, desc)
     }
 
-    fun addIceCandidate(p0: IceCandidate?) {
-        peerConnection?.addIceCandidate(p0)
+    /**
+     * camera
+     */
+
+    fun initializeSurfaceView(surface: SurfaceViewRenderer) {
+        surface.run {
+            setEnableHardwareScaler(true)
+            setMirror(true)
+            init(eglContext.eglBaseContext, null)
+        }
     }
 
-    fun switchCamera() {
-        videoCapturer?.switchCamera(null)
+
+    private fun getCameraVideoCapturer(): CameraVideoCapturer {
+        return Camera2Enumerator(application).run {
+            deviceNames.find { isFrontFacing(it) }?.let {
+                createCapturer(it, null)
+            } ?: throw IllegalStateException()
+        }
     }
 
-    fun toggleAudio(mute: Boolean) {
-        localAudioTrack?.setEnabled(mute)
+    fun startLocalVideo(surface: SurfaceViewRenderer) {
+        try {
+            val surfaceTextureHelper = SurfaceTextureHelper.create(Thread.currentThread().name, eglContext.eglBaseContext)
+            localVideoCapturer = getCameraVideoCapturer()
+            localVideoCapturer?.initialize(surfaceTextureHelper, surface.context, localVideoSource.capturerObserver)
+            localVideoCapturer?.startCapture(320, 240, 30)
+
+            localVideoTrack = peerFactory.createVideoTrack("local_track", localVideoSource)
+            localVideoTrack?.addSink(surface)
+            localAudioTrack = peerFactory.createAudioTrack("local_track_audio", localAudioSource)
+
+            val localStream = peerFactory.createLocalMediaStream("local_stream")
+            localStream.addTrack(localAudioTrack)
+            localStream.addTrack(localVideoTrack)
+            peerConnection?.addTrack(localAudioTrack, listOf(localStream.id))
+            peerConnection?.addTrack(localVideoTrack, listOf(localStream.id))
+
+//            peerConnection?.addStream(localStream)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
-    fun toggleCamera(cameraPause: Boolean) {
-        localVideoTrack?.setEnabled(cameraPause)
+
+    /**
+     * peer connection
+     */
+
+    private fun initPeerConnectionFactory() {
+        val peerConnectionOption = PeerConnectionFactory.InitializationOptions.builder(application)
+            .setEnableInternalTracer(true)
+            .setFieldTrials("WebRTC-H264HighProfile/Enabled/")
+            .createInitializationOptions()
+
+        PeerConnectionFactory.initialize(peerConnectionOption)
     }
 
-    fun endCall() {
-        peerConnection?.close()
+    private fun createPeerConnectionFactory(): PeerConnectionFactory {
+        val encoderFactory = DefaultVideoEncoderFactory(
+            eglContext.eglBaseContext,
+            true,
+            true
+        )
+        val decoderFactory = DefaultVideoDecoderFactory(eglContext.eglBaseContext)
+        val option = PeerConnectionFactory.Options()
+
+        val builder = PeerConnectionFactory.builder()
+            .setVideoEncoderFactory(encoderFactory)
+            .setVideoDecoderFactory(decoderFactory)
+            .setOptions(option)
+
+        return builder.createPeerConnectionFactory()
+    }
+
+    private fun createPeerConnection(): PeerConnection? {
+        val pc = peerFactory.createPeerConnection(iceServer, observer)
+
+        val rtcConfiguration = RTCConfiguration(iceServer).apply {
+            sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
+
+            // tạm chưa sử dụng
+//            iceTransportsType = PeerConnection.IceTransportsType.ALL
+//            bundlePolicy = PeerConnection.BundlePolicy.MAXCOMPAT
+//            disableIpv6 = true
+//            disableIPv6OnWifi = true
+//            iceBackupCandidatePairPingInterval = 1000
+//            candidateNetworkPolicy = PeerConnection.CandidateNetworkPolicy.ALL
+        }
+
+        pc?.setConfiguration(rtcConfiguration)
+
+        return pc
     }
 }

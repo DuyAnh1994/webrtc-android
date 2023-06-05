@@ -4,7 +4,14 @@ import com.anhnd.webrtc.trios.model.base.RtcBaseResponse
 import com.google.gson.annotations.SerializedName
 
 data class RtcDtoUpdate(
+
     @SerializedName("transId") var transId: Int? = null,
 
     @SerializedName("data") var dataDto: DataDtoUpdate? = null
-) : RtcBaseResponse()
+
+) : RtcBaseResponse() {
+
+    fun getSdp(): String? {
+        return dataDto?.sdp
+    }
+}

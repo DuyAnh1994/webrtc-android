@@ -7,6 +7,7 @@ import com.anhnd.webrtc.trios.model.call.request.RtcDtoResponse2
 import com.anhnd.webrtc.trios.model.call.response.RtcDtoResponse
 import com.anhnd.webrtc.trios.model.call.update.RtcDtoUpdate
 import com.anhnd.webrtc.trios.model.event.response.EventDtoResponse
+import com.anhnd.webrtc.utils.TAG
 import com.google.gson.GsonBuilder
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
@@ -15,8 +16,7 @@ import java.net.URI
 class TriosSocket(private val listener: TriosSocketListener) {
 
     companion object {
-        private const val TAG = "TriosSocket"
-        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=2"
+        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=4"
 //        private const val WS_URL = "http://localhost:8080"
     }
 
