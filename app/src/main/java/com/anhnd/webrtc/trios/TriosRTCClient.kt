@@ -2,7 +2,6 @@ package com.anhnd.webrtc.trios
 
 import android.app.Application
 import android.util.Log
-import com.anhnd.webrtc.trios.callback.DataChannelObserverImpl
 import com.anhnd.webrtc.trios.callback.RTCListener
 import com.anhnd.webrtc.trios.callback.SdpObserverImpl
 import com.anhnd.webrtc.trios.callback.State
@@ -19,7 +18,6 @@ import org.webrtc.MediaConstraints
 import org.webrtc.PeerConnection
 import org.webrtc.PeerConnection.RTCConfiguration
 import org.webrtc.PeerConnectionFactory
-import org.webrtc.SdpObserver
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceTextureHelper
 import org.webrtc.SurfaceViewRenderer
@@ -53,25 +51,6 @@ class TriosRTCClient(
     )
     private var dataChannel: DataChannel? = null
 
-    private val mediaConstraints = MediaConstraints().apply {
-        mandatory?.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-        optional?.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-
-        mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
-        optional.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
-
-        mandatory.add(MediaConstraints.KeyValuePair("levelControl", "true"))
-        optional.add(MediaConstraints.KeyValuePair("levelControl", "true"))
-
-        optional?.add(MediaConstraints.KeyValuePair("IceRestart", "true"))
-        mandatory?.add(MediaConstraints.KeyValuePair("IceRestart", "true"))
-
-        mandatory.add(MediaConstraints.KeyValuePair("maxHeight", Integer.toString(1920)));
-        mandatory.add(MediaConstraints.KeyValuePair("maxWidth", Integer.toString(1080)));
-        mandatory.add(MediaConstraints.KeyValuePair("maxFrameRate", Integer.toString(60)));
-        mandatory.add(MediaConstraints.KeyValuePair("minFrameRate", Integer.toString(30)))
-    }
-
     /**
      * local
      */
@@ -87,109 +66,107 @@ class TriosRTCClient(
         initPeerConnectionFactory()
     }
 
-        return peerConnectionFactory.createPeerConnection(rtcConfiguration, observer)
-    }
-
-    fun initializeSurfaceView(surface: SurfaceViewRenderer) {
-        surface.run {
-            setEnableHardwareScaler(true)
-            setMirror(true)
-            init(eglContext.eglBaseContext, null)
+    /**
+     * offer ===================================================================================
+     */
+    fun createOffer() {
+        val mediaConstraints = MediaConstraints().apply {
+            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
+            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
         }
-    }
-
-    fun startLocalVideo(surface: SurfaceViewRenderer) {
-        try {
-            val surfaceTextureHelper =
-                SurfaceTextureHelper.create(Thread.currentThread().name, eglContext.eglBaseContext)
-            videoCapturer = getVideoCapturer(application)
-            videoCapturer?.initialize(
-                surfaceTextureHelper,
-                surface.context,
-                localVideoSource.capturerObserver
-            )
-            videoCapturer?.startCapture(1920, 1080, 60)
-
-            localVideoTrack = peerConnectionFactory.createVideoTrack("local_track", localVideoSource)
-            localVideoTrack?.addSink(surface)
-            localAudioTrack = peerConnectionFactory.createAudioTrack("local_track_audio", localAudioSource)
-
-            val localStream = peerConnectionFactory.createLocalMediaStream("local_stream")
-            localStream.addTrack(localAudioTrack)
-            localStream.addTrack(localVideoTrack)
-            peerConnection?.addTrack(localAudioTrack, listOf(localStream.id))
-            peerConnection?.addTrack(localVideoTrack, listOf(localStream.id))
-//            peerConnection?.addStream(localStream) // TODO: crash nếu create instance peer connection with RTCConfiguration
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    fun createDataChannel(room: String) {
-        val observer = object : DataChannel.Observer {
-            override fun onBufferedAmountChange(p0: Long) {
-                Log.d(TAG, "onBufferedAmountChange() called with: p0 = $p0")
-            }
-
-            override fun onStateChange() {
-                Log.d(TAG, "onStateChange() called")
-            }
-
-            override fun onMessage(p0: DataChannel.Buffer?) {
-                Log.d(TAG, "onMessage() called with: p0 = $p0")
-            }
-        }
-
-        dataChannel = peerConnection?.createDataChannel(room, DataChannel.Init())
-        dataChannel?.registerObserver(observer)
-    }
-
-    private fun getVideoCapturer(application: Application): CameraVideoCapturer {
-        return Camera2Enumerator(application).run {
-            deviceNames.find { isFrontFacing(it) }?.let {
-                createCapturer(it, null)
-            } ?: throw IllegalStateException()
-        }
-    }
-
-    fun createOffer(target: String? = null) {
-//        val mediaConstraints = MediaConstraints().apply {
-//            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
-//            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
-//        }
 
         val sdpObserverByCreate = object : SdpObserverImpl() {
             override fun onCreateSuccess(desc: SessionDescription?) {
-                Log.d(TAG, "1. createOffer ===> [SUCCESS]   type=[${desc?.type?.name}]   sdp=[ ... ]")
-                setLocalOffer(desc)
+                Log.d(TAG, "=> [SUCCESS] 1. createOffer")
+                setLocalSdpByOffer(desc)
+            }
+
+            override fun onCreateFailure(p0: String?) {
+                Log.d(TAG, "=> [FAIL] 1. createOffer reason=[$p0]")
             }
         }
 
         peerConnection?.createOffer(sdpObserverByCreate, mediaConstraints)
     }
 
-    private fun setLocalOffer(sdp: SessionDescription?) {
+    private fun setLocalSdpByOffer(sdp: SessionDescription?) {
         val sdpObserver = object : SdpObserverImpl() {
             override fun onSetSuccess() {
-                Log.d(TAG, "2. setLocal(offer) ===> [SUCCESS]")
+                Log.d(TAG, "=> [SUCCESS] 2. setLocalSdp type=[${sdp?.type?.name}]")
                 sdp?.let {
                     localSdp = it.description
                     listener?.onSetLocalSdpOffer(state = State.SUCCESS, sdp = it)
                 }
+            }
+
+            override fun onSetFailure(p0: String?) {
+                Log.d(TAG, "=> [FAILURE] 2. setRemoteSdp type=[${sdp?.type?.name}] reason=[$p0]")
             }
         }
 
         peerConnection?.setLocalDescription(sdpObserver, sdp)
     }
 
-    fun setRemoteAnswer(sdp: SessionDescription) {
+    fun setRemoteSdpByOffer(sdp: SessionDescription?) {
         val sdpObserver = object : SdpObserverImpl() {
             override fun onSetSuccess() {
-                Log.d(TAG, "3. setRemote(    ) ===> [SUCCESS] type[${sdp.type.name}]   sdp=[ ... ]")
+                Log.d(TAG, "=> [SUCCESS] 4. setRemoteSdp type=[${sdp?.type?.name}]")
             }
 
             override fun onSetFailure(p0: String?) {
-                Log.d(TAG, "onSetFailure: $p0")
+                Log.d(TAG, "=> [FAILURE] 4. setRemoteSdp type=[${sdp?.type?.name}] reason=[$p0]")
+            }
+        }
+
+        peerConnection?.setRemoteDescription(sdpObserver, sdp)
+    }
+
+    /**
+     * answer ===================================================================================
+     */
+    fun createAnswer(onSuccess: (desc: SessionDescription?) -> Unit = {}) {
+        val sdpObserver = object : SdpObserverImpl() {
+            override fun onCreateSuccess(desc: SessionDescription?) {
+                Log.d(TAG, "=> [SUCCESS] 5. createAnswer")
+                setLocalSdpByAnswer(desc)
+                onSuccess.invoke(desc)
+            }
+
+            override fun onCreateFailure(p0: String?) {
+                Log.d(TAG, "=> [FAIL] 5. createAnswer reason=[$p0]")
+            }
+        }
+
+        val mediaConstraints = MediaConstraints().apply {
+            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
+            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
+        }
+
+        peerConnection?.createAnswer(sdpObserver, mediaConstraints)
+    }
+
+    private fun setLocalSdpByAnswer(sdp: SessionDescription?) {
+        val sdpObserver = object : SdpObserverImpl() {
+            override fun onSetSuccess() {
+                Log.d(TAG, "=> [SUCCESS] 6. setLocalSdp type=[${sdp?.type?.name}]")
+            }
+
+            override fun onSetFailure(p0: String?) {
+                Log.d(TAG, "=> [FAILURE] 6. setLocalSdp type=[${sdp?.type?.name}] reason=[$p0]")
+            }
+        }
+
+        peerConnection?.setLocalDescription(sdpObserver, sdp)
+    }
+
+    fun setRemoteSdpByAnswer(sdp: SessionDescription?) {
+        val sdpObserver = object : SdpObserverImpl() {
+            override fun onSetSuccess() {
+                Log.d(TAG, "=> [SUCCESS] 3. setRemoteSdp type=[${sdp?.type?.name}]")
+            }
+
+            override fun onSetFailure(p0: String?) {
+                Log.d(TAG, "=> [FAILURE] 3. setRemoteSdp type=[${sdp?.type?.name}] reason=[$p0]")
             }
         }
 
@@ -198,49 +175,6 @@ class TriosRTCClient(
 
     fun addIceCandidate(p0: IceCandidate?) {
         peerConnection?.addIceCandidate(p0)
-    }
-
-    fun createAnswer(target: String? = null, onSuccess: () -> Unit = {}) {
-        val mediaConstraints = MediaConstraints().apply {
-            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
-            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
-        }
-
-    fun createAnswer(target: String? = null, onSuccess: (desc: SessionDescription?) -> Unit = {}) {
-        val sdpObserver = object : SdpObserver {
-            override fun onCreateSuccess(desc: SessionDescription?) {
-                Log.d(TAG, "onCreateSuccess() called with: desc = $desc")
-                setLocalDesc(desc)
-                onSuccess.invoke(desc)
-            }
-
-            override fun onSetSuccess() {
-                Log.d(TAG, "onSetSuccess() called")
-            }
-
-            override fun onCreateFailure(p0: String?) {
-                Log.d(TAG, "onCreateFailure() called with: p0 = $p0")
-            }
-
-            override fun onSetFailure(p0: String?) {
-                Log.d(TAG, "onSetFailure() called with: p0 = $p0")
-            }
-        }
-
-        Log.d(TAG, "answer signalingState: ${peerConnection?.signalingState()}")
-
-        peerConnection?.createAnswer(sdpObserver, mediaConstraints)
-    }
-
-    private fun setLocalDesc(desc: SessionDescription?) {
-        val sdpObserver = object : SdpObserver {
-            override fun onCreateSuccess(p0: SessionDescription?) {}
-            override fun onSetSuccess() {}
-            override fun onCreateFailure(p0: String?) {}
-            override fun onSetFailure(p0: String?) {}
-        }
-
-        peerConnection?.setLocalDescription(sdpObserver, desc)
     }
 
     /**
@@ -254,7 +188,6 @@ class TriosRTCClient(
             init(eglContext.eglBaseContext, null)
         }
     }
-
 
     private fun getCameraVideoCapturer(): CameraVideoCapturer {
         return Camera2Enumerator(application).run {
@@ -271,22 +204,23 @@ class TriosRTCClient(
             localVideoCapturer?.initialize(surfaceTextureHelper, surface.context, localVideoSource.capturerObserver)
             localVideoCapturer?.startCapture(1920, 1080, 60)
 
-            localVideoTrack = peerFactory.createVideoTrack("local_track", localVideoSource)
+            localVideoTrack = peerFactory.createVideoTrack("local_video_track", localVideoSource)
             localVideoTrack?.addSink(surface)
-            localAudioTrack = peerFactory.createAudioTrack("local_track_audio", localAudioSource)
+            localAudioTrack = peerFactory.createAudioTrack("local_audio_track", localAudioSource)
 
             val localStream = peerFactory.createLocalMediaStream("local_stream")
             localStream.addTrack(localAudioTrack)
             localStream.addTrack(localVideoTrack)
-            peerConnection?.addTrack(localAudioTrack, listOf(localStream.id))
-            peerConnection?.addTrack(localVideoTrack, listOf(localStream.id))
 
-//            peerConnection?.addStream(localStream)
+            // k sử dụng vẫn có thể stream
+//            peerConnection?.addTrack(localAudioTrack, listOf(localStream.id))
+//            peerConnection?.addTrack(localVideoTrack, listOf(localStream.id))
+
+            peerConnection?.addStream(localStream)
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
-
 
     /**
      * peer connection
@@ -323,14 +257,12 @@ class TriosRTCClient(
 
         val rtcConfiguration = RTCConfiguration(iceServer).apply {
             sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
-
-            // tạm chưa sử dụng
-//            iceTransportsType = PeerConnection.IceTransportsType.ALL
-//            bundlePolicy = PeerConnection.BundlePolicy.MAXCOMPAT
-//            disableIpv6 = true
-//            disableIPv6OnWifi = true
-//            iceBackupCandidatePairPingInterval = 1000
-//            candidateNetworkPolicy = PeerConnection.CandidateNetworkPolicy.ALL
+            iceTransportsType = PeerConnection.IceTransportsType.ALL
+            bundlePolicy = PeerConnection.BundlePolicy.MAXCOMPAT
+            disableIpv6 = true
+            disableIPv6OnWifi = true
+            iceBackupCandidatePairPingInterval = 1000
+            candidateNetworkPolicy = PeerConnection.CandidateNetworkPolicy.ALL
         }
 
         pc?.setConfiguration(rtcConfiguration)

@@ -28,7 +28,7 @@ class HandleModel {
         val rtcDto = RtcDtoRequest(
             type = "response",
             transId = 0,
-            dataDto = DataDtoRequest(sdp = sdp)
+            dataDto = dataDtoRequest
         )
 
         return rtcDto

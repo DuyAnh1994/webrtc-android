@@ -13,7 +13,6 @@ import org.webrtc.IceCandidate
 import org.webrtc.MediaConstraints
 import org.webrtc.PeerConnection
 import org.webrtc.PeerConnectionFactory
-import org.webrtc.SdpObserver
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceTextureHelper
 import org.webrtc.SurfaceViewRenderer
@@ -143,12 +142,7 @@ class RTCClient(
     }
 
     fun onRemoteSessionReceived(session: SessionDescription) {
-        peerConnection?.setRemoteDescription(object : SdpObserver {
-            override fun onCreateSuccess(p0: SessionDescription?) {}
-            override fun onSetSuccess() {}
-            override fun onCreateFailure(p0: String?) {}
-            override fun onSetFailure(p0: String?) {}
-        }, session)
+        peerConnection?.setRemoteDescription(object : SdpObserverImpl() {}, session)
     }
 
     fun answer(target: String) {
