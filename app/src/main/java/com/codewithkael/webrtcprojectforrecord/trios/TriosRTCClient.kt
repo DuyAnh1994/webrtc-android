@@ -136,16 +136,16 @@ class TriosRTCClient(
                 surface.context,
                 localVideoSource.capturerObserver
             )
-            videoCapturer?.startCapture(1920, 1080, 60)
+            videoCapturer?.startCapture(320, 240, 30)
 
             localVideoTrack = peerConnectionFactory.createVideoTrack("local_track", localVideoSource)
             localVideoTrack?.addSink(surface)
             localAudioTrack = peerConnectionFactory.createAudioTrack("local_track_audio", localAudioSource)
 
             val localStream = peerConnectionFactory.createLocalMediaStream("local_stream")
-            localStream.addTrack(localAudioTrack)
+//            localStream.addTrack(localAudioTrack)
             localStream.addTrack(localVideoTrack)
-            peerConnection?.addTrack(localAudioTrack, listOf(localStream.id))
+//            peerConnection?.addTrack(localAudioTrack, listOf(localStream.id))
             peerConnection?.addTrack(localVideoTrack, listOf(localStream.id))
 //            peerConnection?.addStream(localStream) // TODO: crash nếu create instance peer connection with RTCConfiguration
         } catch (e: Exception) {

@@ -6,16 +6,12 @@ import androidx.appcompat.app.AppCompatActivity
 import com.codewithkael.webrtcprojectforrecord.databinding.ActivityTriosCallBinding
 import com.codewithkael.webrtcprojectforrecord.trios.model.call.request.DataDtoRequest
 import com.codewithkael.webrtcprojectforrecord.trios.model.call.request.RtcDtoRequest
-import com.codewithkael.webrtcprojectforrecord.trios.model.call.request.RtcDtoResponse2
 import com.codewithkael.webrtcprojectforrecord.trios.model.call.response.RtcDtoResponse
 import com.codewithkael.webrtcprojectforrecord.trios.model.call.update.RtcDtoUpdate
 import com.codewithkael.webrtcprojectforrecord.trios.model.event.response.EventDtoResponse
-import com.codewithkael.webrtcprojectforrecord.utils.PeerConnectionObserver
 import com.codewithkael.webrtcprojectforrecord.utils.RTCAudioManager
 import com.codewithkael.webrtcprojectforrecord.utils.gone
 import com.codewithkael.webrtcprojectforrecord.utils.show
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import org.webrtc.DataChannel
 import org.webrtc.IceCandidate
 import org.webrtc.MediaStream
@@ -33,6 +29,8 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
     private var socketClient: TriosSocket? = null
     private var rtcClient: TriosRTCClient? = null
     private val rtcAudioManager by lazy { RTCAudioManager.create(this) }
+    private val streamList = mutableListOf<MediaStream?>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,10 +50,10 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
             callRequest()
         }
     }
-    private val gson = GsonBuilder().disableHtmlEscaping().create();
+
     override fun onRtcResponse(rtcDto: RtcDtoResponse) {
         Log.d(TAG, "onRtcResponse() called with: rtcDto = ${rtcDto.type}")
-                offerResponse(rtcDto.dataDto?.sdp)
+        offerResponse(rtcDto.dataDto?.sdp)
     }
 
     override fun onRtcEvent(eventDto: EventDtoResponse) {
@@ -78,8 +76,6 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
             )
             socketClient?.sendMessageToSocket(request)
         }
-
-
     }
 
     private fun callRequest() {
@@ -87,9 +83,11 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
             setWhoToCallLayoutGone()
             setCallLayoutVisible()
             binding.apply {
-                rtcClient?.initializeSurfaceView(localView)
-                rtcClient?.initializeSurfaceView(remoteView)
-                rtcClient?.startLocalVideo(localView)
+                rtcClient?.initializeSurfaceView(svrMyCamera)
+//                rtcClient?.initializeSurfaceView(svr1)
+//                rtcClient?.initializeSurfaceView(svr2)
+                rtcClient?.initializeSurfaceView(svr3)
+                rtcClient?.startLocalVideo(svrMyCamera)
 //                rtcClient?.createDataChannel("room 1")
                 rtcClient?.createOffer(targetUserNameEt.text.toString())
             }
@@ -101,7 +99,6 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
         runOnUiThread {
             val session = SessionDescription(SessionDescription.Type.ANSWER, sdp)
             rtcClient?.setRemoteDesc(session)
-
 
 
 //            rtcClient?.createAnswer() {
@@ -119,18 +116,6 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
         runOnUiThread {
             hideLoading()
         }
-    }
-
-    private fun setIncomingCallLayoutGone() {
-        binding.incomingCallLayout.gone()
-    }
-
-    private fun setIncomingCallLayoutVisible() {
-        binding.incomingCallLayout.show()
-    }
-
-    private fun setCallLayoutGone() {
-        binding.callLayout.gone()
     }
 
     private fun setCallLayoutVisible() {
@@ -193,7 +178,15 @@ class TriosCallActivity : AppCompatActivity(), TriosSocketListener {
 
         override fun onAddStream(p0: MediaStream?) {
             Log.d(TAG, "onAddStream() called with: p0 = ${p0?.id}")
-            p0?.videoTracks?.get(0)?.addSink(binding.remoteView)
+            streamList.add(p0)
+            streamList.forEachIndexed { i, v ->
+                when (i) {
+                    0 -> v?.videoTracks?.get(0)?.addSink(binding.svr1)
+                    1 -> v?.videoTracks?.get(0)?.addSink(binding.svr2)
+                    2 -> v?.videoTracks?.get(0)?.addSink(binding.svr3)
+                    else -> {}
+                }
+            }
         }
 
         override fun onRemoveStream(p0: MediaStream?) {

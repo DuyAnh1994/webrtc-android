@@ -18,7 +18,7 @@ class TriosSocket(private val listener: TriosSocketListener) {
 
     companion object {
         private const val TAG = "TriosSocket"
-        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=5"
+        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=2"
 //        private const val WS_URL = "http://localhost:8080"
     }
 
