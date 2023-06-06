@@ -96,7 +96,7 @@
                 android:elevation="16dp" />
 
             <org.webrtc.SurfaceViewRenderer
-                android:id="@+id/svr1"
+                android:id="@+id/svrRemote1"
                 android:layout_width="match_parent"
                 android:layout_height="250dp"
                 android:layout_margin="5dp"

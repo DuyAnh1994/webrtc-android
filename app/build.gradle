@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace 'com.codewithkael.webrtcprojectforrecord'
+    namespace 'com.anhnd.webrtc'
     compileSdk 32
     buildFeatures {
         viewBinding = true
     }
     defaultConfig {
-        applicationId "com.codewithkael.webrtcprojectforrecord"
+        applicationId "com.anhnd.webrtc"
         minSdk 21
         targetSdk 32
         versionCode 1
