@@ -9,17 +9,17 @@ import org.webrtc.RtpReceiver
 import org.webrtc.RtpTransceiver
 
 open class PeerConnectionObserverImpl : PeerConnection.Observer {
-    override fun onSignalingChange(p0: PeerConnection.SignalingState?) {}
-    override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {}
-    override fun onIceConnectionReceivingChange(p0: Boolean) {}
-    override fun onIceGatheringChange(p0: PeerConnection.IceGatheringState?) {}
-    override fun onIceCandidate(p0: IceCandidate?) {}
-    override fun onIceCandidatesRemoved(p0: Array<out IceCandidate>?) {}
-    override fun onAddStream(p0: MediaStream?) {}
-    override fun onRemoveStream(p0: MediaStream?) {}
-    override fun onDataChannel(p0: DataChannel?) {}
+    override fun onSignalingChange(signalingState: PeerConnection.SignalingState?) {}
+    override fun onIceConnectionChange(iceConnectionState: PeerConnection.IceConnectionState?) {}
+    override fun onIceConnectionReceivingChange(change: Boolean) {}
+    override fun onIceGatheringChange(iceGatheringState: PeerConnection.IceGatheringState?) {}
+    override fun onIceCandidate(iceCandidate: IceCandidate?) {}
+    override fun onIceCandidatesRemoved(iceCandidateList: Array<out IceCandidate>?) {}
+    override fun onAddStream(mediaStream: MediaStream?) {}
+    override fun onRemoveStream(mediaStream: MediaStream?) {}
+    override fun onDataChannel(dataChannel: DataChannel?) {}
     override fun onRenegotiationNeeded() {}
-    override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {}
+    override fun onAddTrack(rtpReceiver: RtpReceiver?, mediaStreamList: Array<out MediaStream>?) {}
     override fun onStandardizedIceConnectionChange(newState: PeerConnection.IceConnectionState?) { super.onStandardizedIceConnectionChange(newState) }
     override fun onConnectionChange(newState: PeerConnection.PeerConnectionState?) { super.onConnectionChange(newState) }
     override fun onSelectedCandidatePairChanged(event: CandidatePairChangeEvent?) { super.onSelectedCandidatePairChanged(event) }

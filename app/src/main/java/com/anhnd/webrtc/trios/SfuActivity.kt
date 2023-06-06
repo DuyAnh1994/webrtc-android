@@ -1,5 +1,6 @@
 package com.anhnd.webrtc.trios
 
+import android.opengl.GLSurfaceView
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -9,6 +10,7 @@ import com.anhnd.webrtc.trios.callback.State
 import com.anhnd.webrtc.trios.model.call.response.RtcDtoResponse
 import com.anhnd.webrtc.trios.model.call.update.RtcDtoUpdate
 import com.anhnd.webrtc.trios.model.event.response.EventDtoResponse
+import com.anhnd.webrtc.utils.PeerConnectionObserverImpl
 import com.anhnd.webrtc.utils.RTCAudioManager
 import com.anhnd.webrtc.utils.TAG
 import com.anhnd.webrtc.utils.gone
@@ -27,6 +29,7 @@ class SfuActivity : AppCompatActivity() {
     private var socket: TriosSocket? = null
     private val handleModel by lazy { HandleModel() }
     private val rtcAudioManager by lazy { RTCAudioManager.create(this) }
+    private val userMap = mutableMapOf<String?, MediaStream?>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,8 +55,8 @@ class SfuActivity : AppCompatActivity() {
             binding.apply {
                 rtcClient?.initializeSurfaceView(svrMyCamera)
                 rtcClient?.initializeSurfaceView(svrRemote0)
-//                rtcClient?.initializeSurfaceView(svrRemote1)
-//                rtcClient?.initializeSurfaceView(svrRemote2)
+                rtcClient?.initializeSurfaceView(svrRemote1)
+                rtcClient?.initializeSurfaceView(svrRemote2)
                 rtcClient?.startLocalVideo(svrMyCamera)
                 rtcClient?.createOffer()
             }
@@ -117,7 +120,9 @@ class SfuActivity : AppCompatActivity() {
             update(rtcDto.getSdp())
         }
 
-        override fun onRtcEvent(eventDto: EventDtoResponse) {}
+        override fun onRtcEvent(eventDto: EventDtoResponse) {
+//            rtcClient?.getSenderList()
+        }
     }
 
 
@@ -131,74 +136,32 @@ class SfuActivity : AppCompatActivity() {
         }
     }
 
-    private val peerConnectionObserverImpl = object : PeerConnection.Observer {
-        override fun onSignalingChange(p0: PeerConnection.SignalingState?) {
-            Log.d(TAG, "onSignalingChange() called with: p0 = ${p0?.name}")
+    private val peerConnectionObserverImpl = object : PeerConnectionObserverImpl() {
+        override fun onIceCandidate(iceCandidate: IceCandidate?) {
+            rtcClient?.addIceCandidate(iceCandidate)
         }
 
-        override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {
-            /**
-             * xử lý khi có new user kết nối tới SFU
-             */
-
-            Log.d(TAG, "onIceConnectionChange() called with: p0 = ${p0?.name}")
-            if (p0 == PeerConnection.IceConnectionState.CONNECTED) {
-                // coding
-            }
-        }
-
-        override fun onIceConnectionReceivingChange(p0: Boolean) {
-            Log.d(TAG, "onIceConnectionReceivingChange() called with: p0 = $p0")
-        }
-
-        override fun onIceGatheringChange(p0: PeerConnection.IceGatheringState?) {
-            Log.d(TAG, "onIceGatheringChange() called with: p0 = ${p0?.name}")
-        }
-
-        override fun onIceCandidate(p0: IceCandidate?) {
-//            Log.d(TAG, "onIceCandidate() called with: p0 = $p0")
-
-            rtcClient?.addIceCandidate(p0)
-
-//                val candidate = hashMapOf(
-//                    "sdpMid" to p0?.sdpMid,
-//                    "sdpMLineIndex" to p0?.sdpMLineIndex,
-//                    "sdpCandidate" to p0?.sdp
-//                )
-
-//                socketRepository?.sendMessageToSocket(
-//                    MessageModel("ice_candidate", userName, target, candidate)
-//                )
-        }
-
-        override fun onIceCandidatesRemoved(p0: Array<out IceCandidate>?) {
-            Log.d(TAG, "onIceCandidatesRemoved() called with: p0 = ${p0?.count()}")
-        }
-
-        override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {
-            Log.d(TAG, "onAddTrack() called with: p0 = $p0, p1 = ${p1?.count()}")
-        }
-
-        override fun onAddStream(p0: MediaStream?) {
+        override fun onAddStream(mediaStream: MediaStream?) {
             /**
              * có stream mới trong luồng
              */
-            Log.d(TAG, "onAddStream() called with: p0 = ${p0?.id}")
-            p0?.videoTracks?.get(0)?.addSink(binding.svrRemote0)
-//            p0?.videoTracks?.get(1)?.addSink(binding.svrRemote1)
-//            p0?.videoTracks?.get(2)?.addSink(binding.svrRemote2)
+            Log.d(TAG, "onAddStream() called with: mediaStream = ${mediaStream?.id}")
+            if (!userMap.containsKey(mediaStream?.id)) {
+                userMap[mediaStream?.id] = mediaStream
+            }
+
+            userMap.keys.forEachIndexed { i, _ ->
+                when (i) {
+                    0 -> mediaStream?.videoTracks?.firstOrNull()?.addSink(binding.svrRemote0)
+                    1 -> mediaStream?.videoTracks?.firstOrNull()?.addSink(binding.svrRemote1)
+                    2 -> mediaStream?.videoTracks?.firstOrNull()?.addSink(binding.svrRemote2)
+                    else -> {}
+                }
+            }
         }
 
-        override fun onRemoveStream(p0: MediaStream?) {
-            Log.d(TAG, "onRemoveStream() called with: p0 = ${p0?.id}")
-        }
-
-        override fun onDataChannel(p0: DataChannel?) {
-            Log.d(TAG, "onDataChannel() called with: p0 = $p0")
-        }
-
-        override fun onRenegotiationNeeded() {
-            Log.d(TAG, "onRenegotiationNeeded() called")
+        override fun onRemoveStream(mediaStream: MediaStream?) {
+            Log.d(TAG, "onRemoveStream() called with: p0 = ${mediaStream?.id}")
         }
     }
 }
