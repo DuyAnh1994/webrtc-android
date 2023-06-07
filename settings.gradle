@@ -2,17 +2,20 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         google()
-        mavenCentral()
         jcenter()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
-        mavenCentral()
         jcenter()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 rootProject.name = "webrtcAndroid"
 include ':app'
+include ':rtc-android'

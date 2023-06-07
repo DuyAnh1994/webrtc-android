@@ -7,7 +7,7 @@
     app:cardCornerRadius="8dp">
 
     <org.webrtc.SurfaceViewRenderer
-        android:id="@+id/svrRoom"
+        android:id="@+id/svrUser"
         android:layout_width="match_parent"
         android:layout_height="200dp" />
 

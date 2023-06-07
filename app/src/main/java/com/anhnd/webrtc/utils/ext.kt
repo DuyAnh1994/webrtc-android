@@ -3,6 +3,11 @@ package com.anhnd.webrtc.utils
 import android.app.Activity
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.webrtc.EglBase
 import org.webrtc.SurfaceViewRenderer
 
@@ -23,8 +28,28 @@ fun Activity.toast(msg: String) {
 }
 
 
-fun SurfaceViewRenderer.initializeSurfaceView(eglBase: EglBase){
+fun SurfaceViewRenderer.initializeSurfaceView(eglBase: EglBase) {
     setEnableHardwareScaler(true)
     setMirror(true)
     init(eglBase.eglBaseContext, null)
+}
+
+fun <T> MutableLiveData<T>.asLiveData() = this as LiveData<T>
+
+fun <E> LiveData<List<E>>.isEmptyList() = value.isNullOrEmpty()
+
+fun <T> MutableLiveData<T>.postSelf() {
+    postValue(this.value)
+}
+
+fun <T> MutableLiveData<T>.setSelf() {
+    value = this.value
+}
+
+fun <T> MutableStateFlow<T>.postSelf() {
+    value = this.value
+}
+
+fun <T> AppCompatActivity.observer(liveData: LiveData<T>, onChange: (T) -> Unit) {
+    liveData.observe(this, Observer(onChange))
 }

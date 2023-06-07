@@ -2,13 +2,16 @@ package com.anhnd.webrtc.p2p
 
 import android.util.Log
 import com.anhnd.webrtc.p2p.models.MessageModel
-import com.anhnd.webrtc.utils.TAG
 import com.google.gson.Gson
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 
 class SocketRepository(private val messageInterface: NewMessageInterface) {
+    companion object {
+        private const val TAG = "SocketRepository"
+    }
+
     private var webSocket: WebSocketClient? = null
     private var userName: String? = null
     private val gson = Gson()

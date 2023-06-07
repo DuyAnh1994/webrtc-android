@@ -1,0 +1,13 @@
+package com.bglobal.lib.webrtc.data.model.call.response
+
+import com.google.gson.annotations.SerializedName
+
+data class ParticipantDto(
+
+    @SerializedName("id") var id: Int? = null,
+
+    @SerializedName("name") var name: String? = null,
+
+    @SerializedName("streams") var streams: List<Any>? = null
+
+)

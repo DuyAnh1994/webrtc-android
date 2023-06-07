@@ -1,7 +1,6 @@
 package com.anhnd.webrtc.p2p
 
 import android.app.Application
-import com.anhnd.webrtc.trios.callback.SdpObserverImpl
 import com.anhnd.webrtc.p2p.models.MessageModel
 import org.webrtc.AudioTrack
 import org.webrtc.Camera2Enumerator
@@ -125,40 +124,40 @@ class RTCClient(
         val mediaConstraints = MediaConstraints()
         mediaConstraints.mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
 
-        peerConnection?.createOffer(object : SdpObserverImpl() {
-            override fun onCreateSuccess(desc: SessionDescription?) {
-                setLocalDesc(desc, target)
-            }
-        }, mediaConstraints)
+//        peerConnection?.createOffer(object : SdpObserverImpl() {
+//            override fun onCreateSuccess(desc: SessionDescription?) {
+//                setLocalDesc(desc, target)
+//            }
+//        }, mediaConstraints)
     }
 
     fun setLocalDesc(desc: SessionDescription?, target: String) {
-        peerConnection?.setLocalDescription(object : SdpObserverImpl() {
-            override fun onSetSuccess() {
-                val offer = hashMapOf("sdp" to desc?.description, "type" to desc?.type)
-                socketRepository.sendMessageToSocket(MessageModel("create_offer", username, target, offer))
-            }
-        }, desc)
+//        peerConnection?.setLocalDescription(object : SdpObserverImpl() {
+//            override fun onSetSuccess() {
+//                val offer = hashMapOf("sdp" to desc?.description, "type" to desc?.type)
+//                socketRepository.sendMessageToSocket(MessageModel("create_offer", username, target, offer))
+//            }
+//        }, desc)
     }
 
     fun onRemoteSessionReceived(session: SessionDescription) {
-        peerConnection?.setRemoteDescription(object : SdpObserverImpl() {}, session)
+//        peerConnection?.setRemoteDescription(object : SdpObserverImpl() {}, session)
     }
 
     fun answer(target: String) {
-        val constraints = MediaConstraints()
-        constraints.mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
-
-        peerConnection?.createAnswer(object : SdpObserverImpl() {
-            override fun onCreateSuccess(desc: SessionDescription?) {
-                peerConnection?.setLocalDescription(object : SdpObserverImpl() {
-                    override fun onSetSuccess() {
-                        val answer = hashMapOf("sdp" to desc?.description, "type" to desc?.type)
-                        socketRepository.sendMessageToSocket(MessageModel("create_answer", username, target, answer))
-                    }
-                }, desc)
-            }
-        }, constraints)
+//        val constraints = MediaConstraints()
+//        constraints.mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
+//
+//        peerConnection?.createAnswer(object : SdpObserverImpl() {
+//            override fun onCreateSuccess(desc: SessionDescription?) {
+//                peerConnection?.setLocalDescription(object : SdpObserverImpl() {
+//                    override fun onSetSuccess() {
+//                        val answer = hashMapOf("sdp" to desc?.description, "type" to desc?.type)
+//                        socketRepository.sendMessageToSocket(MessageModel("create_answer", username, target, answer))
+//                    }
+//                }, desc)
+//            }
+//        }, constraints)
     }
 
     fun addIceCandidate(p0: IceCandidate?) {

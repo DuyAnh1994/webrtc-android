@@ -11,7 +11,6 @@ import com.anhnd.webrtc.p2p.models.IceCandidateModel
 import com.anhnd.webrtc.p2p.models.MessageModel
 import com.anhnd.webrtc.utils.PeerConnectionObserverImpl
 import com.anhnd.webrtc.utils.RTCAudioManager
-import com.anhnd.webrtc.utils.TAG
 import com.google.gson.Gson
 import org.webrtc.DataChannel
 import org.webrtc.IceCandidate
@@ -22,6 +21,9 @@ import org.webrtc.SessionDescription
 
 class P2PCallActivity : AppCompatActivity(), NewMessageInterface {
 
+    companion object {
+        private const val TAG = "P2PCallActivity"
+    }
     private lateinit var binding: P2pCallActivityBinding
     private var userName: String? = null
     private var socketRepository: SocketRepository? = null
