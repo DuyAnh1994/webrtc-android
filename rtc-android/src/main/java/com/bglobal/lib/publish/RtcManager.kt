@@ -1,6 +1,7 @@
 package com.bglobal.lib.publish
 
 import android.app.Application
+import android.util.Log
 import com.bglobal.lib.webrtc.callback.PeerConnectionObserverImpl
 import com.bglobal.lib.webrtc.data.RtcException
 import com.bglobal.lib.webrtc.data.model.call.response.RtcDtoResponse
@@ -18,10 +19,15 @@ import org.webrtc.SurfaceViewRenderer
 
 class RtcManager(private val application: Application) {
 
+
+    companion object {
+        private const val TAG = "RtcManager"
+    }
     private var socket: BglobalSocketClient? = null
     private val socketListener = object : BglobalSocketListener {
         override fun onRtcResponse(rtcDto: RtcDtoResponse) {
             offerResponse(rtcDto.getSdp())
+            Log.d(TAG, "onRtcResponse: ${rtcDto}")
         }
 
         override fun onRtcUpdate(rtcDto: RtcDtoUpdate) {

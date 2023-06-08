@@ -1,12 +1,12 @@
 package com.bglobal.lib.webrtc.data.socket
 
 import android.util.Log
-import com.bglobal.lib.webrtc.data.model.call.response.RtcDtoResponse
-import com.bglobal.lib.webrtc.data.model.event.response.EventDtoResponse
+import com.bglobal.lib.utils.TAG
 import com.bglobal.lib.webrtc.data.model.base.RtcBaseResponse
 import com.bglobal.lib.webrtc.data.model.call.request.RtcDtoRequest
+import com.bglobal.lib.webrtc.data.model.call.response.RtcDtoResponse
 import com.bglobal.lib.webrtc.data.model.call.update.RtcDtoUpdate
-import com.bglobal.lib.utils.TAG
+import com.bglobal.lib.webrtc.data.model.event.response.EventDtoResponse
 import com.google.gson.GsonBuilder
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
@@ -62,7 +62,7 @@ class BglobalSocketClient(private val listener: BglobalSocketListener) {
     fun sendMessageToSocket(rtcDto: RtcDtoRequest) {
         try {
             val json = gson.toJson(rtcDto)
-            Log.d(TAG, "send json: $json")
+            Log.d(TAG, "send json ........")
             webSocket?.send(json)
         } catch (e: Exception) {
             e.printStackTrace()

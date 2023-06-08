@@ -1,7 +1,6 @@
-package com.anhnd.webrtc.trios
+package com.anhnd.webrtc.sfu
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.SfuActivityBinding
@@ -43,6 +42,7 @@ class SfuActivity : AppCompatActivity() {
         roomAdapter.rtcManager = rtcManager
 
         binding.rvRoom.apply {
+//            recycledViewPool.setMaxRecycledViews(RoomAdapter.PARTICIPANT_VIEW_TYPE, 20)
             adapter = roomAdapter
         }
 

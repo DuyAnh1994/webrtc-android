@@ -81,12 +81,6 @@
         android:visibility="gone"
         tools:visibility="visible">
 
-        <org.webrtc.SurfaceViewRenderer
-            android:id="@+id/svrLocal"
-            android:layout_width="150dp"
-            android:layout_height="200dp"
-            android:layout_margin="12dp" />
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvRoom"
             android:layout_width="match_parent"
@@ -97,6 +91,15 @@
             app:spanCount="2"
             tools:listitem="@layout/participant_item" />
 
+        <org.webrtc.SurfaceViewRenderer
+            android:id="@+id/svrLocal"
+            android:layout_width="150dp"
+            android:layout_height="200dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="12dp" />
+
         <LinearLayout
             android:id="@+id/controls"
             android:layout_width="match_parent"
@@ -106,7 +109,8 @@
             android:background="@drawable/curve_background"
             android:backgroundTint="@android:color/secondary_text_light"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <ImageView
                 android:id="@+id/mic_button"

@@ -1,11 +1,13 @@
-package com.anhnd.webrtc.trios
+package com.anhnd.webrtc.sfu
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.anhnd.webrtc.trios.domain.model.Participant
+import androidx.lifecycle.viewModelScope
+import com.anhnd.webrtc.sfu.domain.model.Participant
 import com.anhnd.webrtc.utils.asLiveData
 import com.anhnd.webrtc.utils.postSelf
+import kotlinx.coroutines.launch
 import org.webrtc.MediaStream
 
 class SfuViewModel : ViewModel() {
@@ -18,7 +20,7 @@ class SfuViewModel : ViewModel() {
 
 
     init {
-
+//        mockData()
     }
 
 
@@ -55,6 +57,16 @@ class SfuViewModel : ViewModel() {
     fun check() {
         _participantListState.value?.forEach {
             Log.d("anhnd", "check: ${it.mediaStream?.id}")
+        }
+    }
+
+    private fun mockData() {
+        viewModelScope.launch {
+            for (i in 0..20) {
+                participantList.add(Participant(index = i))
+            }
+
+            _participantListState.postValue(participantList)
         }
     }
 }

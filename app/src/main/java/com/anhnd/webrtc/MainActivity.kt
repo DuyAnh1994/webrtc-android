@@ -4,22 +4,24 @@ import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.MainActivityBinding
 import com.anhnd.webrtc.p2p.P2PActivity
-import com.anhnd.webrtc.trios.SfuActivity
+import com.anhnd.webrtc.sfu.SfuActivity
 import com.anhnd.webrtc.utils.toast
 import com.permissionx.guolindev.PermissionX
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: MainActivityBinding
+    private val viewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = MainActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+//        viewModel.getAll()
 
         binding.btnP2P.setOnClickListener {
             PermissionX.init(this)

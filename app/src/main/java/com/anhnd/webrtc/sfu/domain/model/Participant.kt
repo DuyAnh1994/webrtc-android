@@ -1,8 +1,10 @@
-package com.anhnd.webrtc.trios.domain.model
+package com.anhnd.webrtc.sfu.domain.model
 
 import android.util.Log
+import android.view.TextureView
 import org.webrtc.MediaStream
 import org.webrtc.SurfaceViewRenderer
+import org.webrtc.VideoFrame.TextureBuffer
 
 data class Participant(
     var index: Int,
