@@ -19,7 +19,6 @@ class RoomAdapter : ListAdapter<Participant, RoomAdapter.ParticipantVH>(Particip
     }
 
     var rtcManager: RtcManager? = null
-    private val cacheMap = mutableMapOf<String?, Participant>()
 
     inner class ParticipantVH(private val binding: ParticipantItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
@@ -30,22 +29,12 @@ class RoomAdapter : ListAdapter<Participant, RoomAdapter.ParticipantVH>(Particip
         }
 
         fun onBind(data: Participant) {
-//            Log.d(TAG, "onBind: id=${data.id} --- ${isExistInMap(data.id)}")
-//            if (!isExistInMap(data.id)) {
-//                cacheMap[data.id] = data
-//                data.addSink(binding.svrUser)
-//            } else {
-//                binding.tvIndex.text = "${data.index}"
-//                data.addSink(binding.svrUser)
-//            }
+            if (adapterPosition == 0) {
+                rtcManager?.startLocalVideo(binding.svrUser)
+            }
 
-
-            binding.tvIndex.text = "${data.index}"
+            binding.tvIndex.text = "$adapterPosition"
             data.addSink(binding.svrUser)
-        }
-
-        private fun isExistInMap(id: String?): Boolean {
-            return cacheMap.containsKey(id)
         }
     }
 
@@ -68,11 +57,11 @@ class RoomAdapter : ListAdapter<Participant, RoomAdapter.ParticipantVH>(Particip
 class ParticipantDiffCallback() : DiffUtil.ItemCallback<Participant>() {
 
     override fun areItemsTheSame(oldItem: Participant, newItem: Participant): Boolean {
-        return oldItem.id == newItem.id
+        return oldItem.name == newItem.name
 
     }
 
     override fun areContentsTheSame(oldItem: Participant, newItem: Participant): Boolean {
-        return oldItem.mediaStream?.id == newItem.mediaStream?.id
+        return oldItem.name == newItem.name
     }
 }

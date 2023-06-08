@@ -64,6 +64,9 @@ class SfuViewModel : ViewModel() {
         viewModelScope.launch {
             for (i in 0..20) {
                 participantList.add(Participant(index = i))
+                if (i == 0) {
+                    participantList[0].isLocal = true
+                }
             }
 
             _participantListState.postValue(participantList)

@@ -90,6 +90,7 @@ class RtcManager(private val application: Application) {
     }
 
     fun startLocalVideo(surface: SurfaceViewRenderer) {
+        Log.d(TAG, "onBind: ccccccc")
         rtcClient?.startLocalVideo(surface)
     }
 
