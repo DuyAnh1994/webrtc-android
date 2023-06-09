@@ -1,17 +1,15 @@
 package com.anhnd.webrtc.sfu
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.anhnd.webrtc.databinding.ParticipantItemBinding
 import com.anhnd.webrtc.sfu.domain.model.Participant
 import com.anhnd.webrtc.utils.initializeSurfaceView
 import com.bglobal.lib.publish.RtcManager
 
-class RoomAdapter : ListAdapter<Participant, RoomAdapter.ParticipantVH>(ParticipantDiffCallback()) {
+class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
 
     companion object {
         private const val TAG = "RoomAdapter"
@@ -19,6 +17,28 @@ class RoomAdapter : ListAdapter<Participant, RoomAdapter.ParticipantVH>(Particip
     }
 
     var rtcManager: RtcManager? = null
+    private var currentList = mutableListOf<Participant>()
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticipantVH {
+        val binding = ParticipantItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return ParticipantVH(binding)
+    }
+
+    override fun getItemCount() = currentList.count()
+
+    override fun getItemViewType(position: Int): Int {
+        return PARTICIPANT_VIEW_TYPE
+    }
+
+    override fun onBindViewHolder(holder: ParticipantVH, position: Int) {
+        holder.onBind(currentList[holder.adapterPosition])
+    }
+
+    fun submitList(list: MutableList<Participant>) {
+        currentList.clear()
+        currentList.addAll(list)
+        notifyDataSetChanged()
+    }
 
     inner class ParticipantVH(private val binding: ParticipantItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
@@ -36,21 +56,6 @@ class RoomAdapter : ListAdapter<Participant, RoomAdapter.ParticipantVH>(Particip
             binding.tvIndex.text = "$adapterPosition"
             data.addSink(binding.svrUser)
         }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticipantVH {
-        val binding = ParticipantItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ParticipantVH(binding)
-    }
-
-    override fun getItemCount() = currentList.count()
-
-    override fun getItemViewType(position: Int): Int {
-        return PARTICIPANT_VIEW_TYPE
-    }
-
-    override fun onBindViewHolder(holder: ParticipantVH, position: Int) {
-        holder.onBind(currentList[holder.adapterPosition])
     }
 }
 

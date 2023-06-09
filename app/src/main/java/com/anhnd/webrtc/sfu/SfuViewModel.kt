@@ -7,24 +7,68 @@ import androidx.lifecycle.viewModelScope
 import com.anhnd.webrtc.sfu.domain.model.Participant
 import com.anhnd.webrtc.utils.asLiveData
 import com.anhnd.webrtc.utils.postSelf
+import com.bglobal.lib.publish.ParticipantRtcModel
 import kotlinx.coroutines.launch
 import org.webrtc.MediaStream
 
 class SfuViewModel : ViewModel() {
+
+    private val TAG = "SfuViewModel"
 
     private val participantList = mutableListOf<Participant>(
 //        Participant(index = 0, isLocal = true)
     )
     private val _participantListState = MutableLiveData(participantList)
     val participantListState = _participantListState.asLiveData()
-
+    private var existLocalStream = false
 
     init {
 //        mockData()
+
+        initLocalStream()
     }
 
+    private fun initLocalStream() {
+        val item = Participant(
+            id = 0,
+            name = "",
+            streamId = "",
+            isLocal = true
+        )
+        participantList.add(item)
+        _participantListState.postSelf()
+    }
 
-    fun getItemById(id: String?): Participant? {
+    fun userJoinRoom(newUser: ParticipantRtcModel) {
+        viewModelScope.launch {
+            val p = Participant(
+                id = newUser.id,
+                name = newUser.name,
+                streamId = newUser.streamId
+            )
+            participantList.add(p)
+            _participantListState.postSelf()
+        }
+    }
+
+    fun updateMediaStream(mediaStream: MediaStream?) {
+        val index = participantList.indexOfFirst {
+            it.streamId == mediaStream?.id
+        }
+
+        Log.d(TAG, "updateMediaStream: $index")
+
+        if (index in 0..participantList.lastIndex) {
+            participantList[index].mediaStream = mediaStream
+        } else {
+//            participantList.add(Participant())
+
+        }
+
+        _participantListState.postSelf()
+    }
+
+    fun getItemById(id: Int): Participant? {
         return participantList.firstOrNull { it.id == id }
     }
 
@@ -37,19 +81,8 @@ class SfuViewModel : ViewModel() {
         return false
     }
 
-    fun insertMediaStream(mediaStream: MediaStream?) {
-        val item = Participant(
-            index = 1,
-            id = mediaStream?.id,
-            mediaStream = mediaStream
-        )
-        participantList.add(item)
-
-        _participantListState.postSelf()
-    }
-
     fun removeMediaStream(mediaStream: MediaStream?) {
-        val item = getItemById(mediaStream?.id)
+        val item = getItemById(0)
         participantList.remove(item)
         _participantListState.postSelf()
     }
@@ -62,14 +95,14 @@ class SfuViewModel : ViewModel() {
 
     private fun mockData() {
         viewModelScope.launch {
-            for (i in 0..20) {
-                participantList.add(Participant(index = i))
-                if (i == 0) {
-                    participantList[0].isLocal = true
-                }
-            }
-
-            _participantListState.postValue(participantList)
+//            for (i in 0..20) {
+//                participantList.add(Participant(id = i))
+//                if (i == 0) {
+//                    participantList[0].isLocal = true
+//                }
+//            }
+//
+//            _participantListState.postValue(participantList)
         }
     }
 }

@@ -1,11 +1,19 @@
 package com.bglobal.lib.webrtc.data.socket
 
+import com.bglobal.lib.webrtc.data.model.call.response.ParticipantApiModel
 import com.bglobal.lib.webrtc.data.model.call.response.RtcDtoResponse
-import com.bglobal.lib.webrtc.data.model.event.response.EventDtoResponse
 import com.bglobal.lib.webrtc.data.model.call.update.RtcDtoUpdate
 
 interface BglobalSocketListener {
-    fun onRtcResponse(rtcDto: RtcDtoResponse) {}
-    fun onRtcEvent(eventDto : EventDtoResponse) {}
-    fun onRtcUpdate(rtcDto: RtcDtoUpdate) {}
+    interface Response {
+        fun onRtcResponse(rtcDto: RtcDtoResponse)
+    }
+
+    interface Update {
+        fun onRtcUpdate(rtcDto: RtcDtoUpdate)
+    }
+
+    interface Event {
+        fun onParticipantList(participantList: List<ParticipantApiModel>)
+    }
 }

@@ -6,6 +6,6 @@ data class RoomDto(
 
     @SerializedName("id") var id: Int? = null,
 
-    @SerializedName("participants") var participants: List<ParticipantDto>? = null
+    @SerializedName("participants") var participants: List<ParticipantApiModel>? = null
 
 )

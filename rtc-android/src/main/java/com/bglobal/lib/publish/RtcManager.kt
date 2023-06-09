@@ -1,16 +1,20 @@
 package com.bglobal.lib.publish
 
 import android.app.Application
-import android.util.Log
+import com.bglobal.lib.webrtc.BglobalRtcClient
+import com.bglobal.lib.webrtc.RTCAudioManager
 import com.bglobal.lib.webrtc.callback.PeerConnectionObserverImpl
 import com.bglobal.lib.webrtc.data.RtcException
+import com.bglobal.lib.webrtc.data.model.call.response.ParticipantApiModel
 import com.bglobal.lib.webrtc.data.model.call.response.RtcDtoResponse
+import com.bglobal.lib.webrtc.data.model.call.response.toRtcModel
 import com.bglobal.lib.webrtc.data.model.call.update.RtcDtoUpdate
 import com.bglobal.lib.webrtc.data.socket.BglobalSocketClient
 import com.bglobal.lib.webrtc.data.socket.BglobalSocketListener
 import com.bglobal.lib.webrtc.data.socket.HandleModel
-import com.bglobal.lib.webrtc.RTCAudioManager
-import com.bglobal.lib.webrtc.BglobalRtcClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.webrtc.EglBase
 import org.webrtc.IceCandidate
 import org.webrtc.MediaStream
@@ -19,35 +23,28 @@ import org.webrtc.SurfaceViewRenderer
 
 class RtcManager(private val application: Application) {
 
-
     companion object {
         private const val TAG = "RtcManager"
     }
-    private var socket: BglobalSocketClient? = null
-    private val socketListener = object : BglobalSocketListener {
-        override fun onRtcResponse(rtcDto: RtcDtoResponse) {
-            offerResponse(rtcDto.getSdp())
-            Log.d(TAG, "onRtcResponse: ${rtcDto}")
-        }
 
-        override fun onRtcUpdate(rtcDto: RtcDtoUpdate) {
-            createAnswer(rtcDto.getSdp())
-        }
-    }
+    private val coroutines = CoroutineScope(Dispatchers.Default)
 
     private var rtcClient: BglobalRtcClient? = null
     private var rtcListener: BglobalRtcListener? = null
-
+    private var socket: BglobalSocketClient? = null
     private val handleModel by lazy { HandleModel() }
     private val rtcAudioManager by lazy { RTCAudioManager.create(application.applicationContext) }
-
 
     init {
 
     }
 
     fun build() {
-        socket = BglobalSocketClient(socketListener)
+        socket = BglobalSocketClient(
+            responseListener = responseListener,
+            updateListener = updateListener,
+            eventListener = eventListener,
+        )
         rtcClient = BglobalRtcClient(
             application = this.application,
             observer = peerConnectionObserverImpl,
@@ -90,7 +87,6 @@ class RtcManager(private val application: Application) {
     }
 
     fun startLocalVideo(surface: SurfaceViewRenderer) {
-        Log.d(TAG, "onBind: ccccccc")
         rtcClient?.startLocalVideo(surface)
     }
 
@@ -106,11 +102,9 @@ class RtcManager(private val application: Application) {
         rtcListener = null
     }
 
-
-
     private val callback = object : BglobalRtcClient.Callback {
         override fun onSetLocalSdpOffer(state: BglobalRtcClient.State, sdp: SessionDescription) {
-            onCreateOffer(sdp = sdp.description)
+            onCreateOffer(name = "anhnd", sdp = sdp.description)
         }
     }
 
@@ -125,6 +119,39 @@ class RtcManager(private val application: Application) {
 
         override fun onRemoveStream(mediaStream: MediaStream?) {
             rtcListener?.onRemoveStream(mediaStream)
+        }
+    }
+
+    private val responseListener = object : BglobalSocketListener.Response {
+        override fun onRtcResponse(rtcDto: RtcDtoResponse) {
+            offerResponse(rtcDto.getSdp())
+            val partiList = rtcDto.dataDto?.roomDto?.participants?.map {
+                it.toRtcModel()
+            } ?: mutableListOf()
+
+            val user = ParticipantRtcModel(
+                id = 0,
+                name = "name",
+                streamId = "mediaStreamID"
+            )
+
+            rtcListener?.onUserJoinRoom(user)
+            createAnswer(rtcDto.getSdp())
+        }
+    }
+
+    private val updateListener = object : BglobalSocketListener.Update {
+        override fun onRtcUpdate(rtcDto: RtcDtoUpdate) {
+            createAnswer(rtcDto.getSdp())
+        }
+    }
+
+    private val eventListener = object : BglobalSocketListener.Event {
+        override fun onParticipantList(participantList: List<ParticipantApiModel>) {
+            coroutines.launch {
+                val list = participantList.map { it.toRtcModel() }
+                rtcListener?.onUserListInRoom(list)
+            }
         }
     }
 }

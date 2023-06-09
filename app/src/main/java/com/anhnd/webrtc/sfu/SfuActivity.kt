@@ -5,29 +5,45 @@ import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.SfuActivityBinding
-import com.anhnd.webrtc.utils.gone
-import com.anhnd.webrtc.utils.initializeSurfaceView
 import com.anhnd.webrtc.utils.observer
-import com.anhnd.webrtc.utils.show
 import com.bglobal.lib.publish.BglobalRtcListener
+import com.bglobal.lib.publish.ParticipantRtcModel
 import com.bglobal.lib.publish.RtcManager
 import org.webrtc.MediaStream
 
 class SfuActivity : AppCompatActivity() {
 
+    companion object {
+        private const val TAG = "SfuActivity"
+    }
+
     private lateinit var binding: SfuActivityBinding
     private val viewModel by viewModels<SfuViewModel>()
     private val roomAdapter by lazy { RoomAdapter() }
+
+
+
     private val rtcManager by lazy { RtcManager(application) }
     private val rtcListener = object : BglobalRtcListener {
+        override fun onUserListInRoom(totalList: List<ParticipantRtcModel>) {
+            Log.d(TAG, "\n\n onUserListInRoom   total = ${totalList.count()} ----------------------------------------------")
+            totalList.forEach {
+                Log.d(TAG, "onUserListInRoom: id=${it.id} name=${it.name} streamId=${it.streamId} ")
+            }
+        }
+
+        override fun onUserJoinRoom(userJoin: ParticipantRtcModel) {
+            viewModel.userJoinRoom(userJoin)
+        }
+
         override fun onAddStream(mediaStream: MediaStream?) {
             if (!viewModel.isSameStreamDisplay(mediaStream)) {
-                viewModel.insertMediaStream(mediaStream)
+                viewModel.updateMediaStream(mediaStream)
             }
         }
 
         override fun onRemoveStream(mediaStream: MediaStream?) {
-            viewModel.removeMediaStream(mediaStream)
+//            viewModel.removeMediaStream(mediaStream)
         }
     }
 
@@ -38,7 +54,6 @@ class SfuActivity : AppCompatActivity() {
 
         rtcManager.build()
         rtcManager.addRtcListener(rtcListener)
-//        binding.svrLocal.initializeSurfaceView(rtcManager.getEglBase())
 
         roomAdapter.rtcManager = rtcManager
 
@@ -46,7 +61,7 @@ class SfuActivity : AppCompatActivity() {
             adapter = roomAdapter
         }
 
-        binding.sendCmd.setOnClickListener { doCall() }
+        binding.ivCall.setOnClickListener { doCall() }
 
         binding.endCallButton.setOnClickListener {
             viewModel.check()
@@ -54,7 +69,6 @@ class SfuActivity : AppCompatActivity() {
 
         observer(viewModel.participantListState) {
             roomAdapter.submitList(it)
-            roomAdapter.notifyDataSetChanged()
         }
     }
 
@@ -64,19 +78,6 @@ class SfuActivity : AppCompatActivity() {
     }
 
     private fun doCall() {
-        runOnUiThread {
-            setWhoToCallLayoutGone()
-            setCallLayoutVisible()
-//            rtcManager.startLocalVideo(binding.svrLocal)
-            rtcManager.createOffer()
-        }
-    }
-
-    private fun setCallLayoutVisible() {
-        binding.callLayout.show()
-    }
-
-    private fun setWhoToCallLayoutGone() {
-        binding.whoToCallLayout.gone()
+        rtcManager.createOffer()
     }
 }
