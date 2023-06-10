@@ -52,12 +52,11 @@ class BglobalRtcClient(
     private val constraints = MediaConstraints().apply {
         mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
         mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
-        mandatory.add(MediaConstraints.KeyValuePair("RtpDataChannels", "true"))
+//        mandatory.add(MediaConstraints.KeyValuePair("RtpDataChannels", "true"))
     }
 
     private val localVideoSource by lazy { peerFactory.createVideoSource(false) }
     private val localAudioSource by lazy { peerFactory.createAudioSource(constraints) }
-    var localSdp: String? = ""
 
 
     init {
@@ -68,11 +67,6 @@ class BglobalRtcClient(
      * offer ===================================================================================
      */
     fun createOffer() {
-//        val mediaConstraints = MediaConstraints().apply {
-//            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-//            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
-//        }
-
         val sdpObserverByCreate = object : SdpObserverImpl() {
             override fun onCreateSuccess(desc: SessionDescription?) {
                 Log.d(TAG, "=> [SUCCESS] 1. createOffer")
@@ -92,7 +86,6 @@ class BglobalRtcClient(
             override fun onSetSuccess() {
                 Log.d(TAG, "=> [SUCCESS] 2. setLocalSdp type=[${sdp?.type?.name}]")
                 sdp?.let {
-                    localSdp = it.description
                     callback?.onSetLocalSdpOffer(state = State.SUCCESS, sdp = it)
                 }
             }
@@ -134,11 +127,6 @@ class BglobalRtcClient(
                 Log.d(TAG, "=> [FAIL] 5. createAnswer reason=[$p0]")
             }
         }
-
-//        val mediaConstraints = MediaConstraints().apply {
-//            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-//            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
-//        }
 
         peerConnection?.createAnswer(sdpObserver, constraints)
     }
@@ -192,18 +180,6 @@ class BglobalRtcClient(
 
 //            peerConnection?.addTrack(localAudioTrack)
             peerConnection?.addTrack(localVideoTrack)
-
-
-//            peerConnection?.addTransceiver(localAudioTrack)
-//            peerConnection?.addTransceiver(localVideoTrack)
-
-
-//            val localStream = peerFactory.createLocalMediaStream("local_stream")
-//            localStream.addTrack(localAudioTrack)
-//            localStream.addTrack(localVideoTrack)
-
-
-//            peerConnection?.addStream(localStream)
 
         } catch (e: Exception) {
             e.printStackTrace()

@@ -1,15 +1,13 @@
-package com.bglobal.lib.webrtc.data.model.call.response
+package com.bglobal.lib.webrtc.data.model.call.offer
 
 import com.bglobal.lib.webrtc.data.model.base.RtcBaseResponse
-import com.bglobal.lib.webrtc.data.model.call.response.DataDtoResponse
+import com.bglobal.lib.webrtc.data.model.call.DataDTO
 import com.google.gson.annotations.SerializedName
 
-data class RtcDtoResponse(
-
+data class OfferResponse(
     @SerializedName("transId") var transId: Int? = null,
 
-    @SerializedName("data") var dataDto: DataDtoResponse? = null
-
+    @SerializedName("data") var dataDto: DataDTO? = null
 ) : RtcBaseResponse() {
 
     fun getSdp(): String? {

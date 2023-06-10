@@ -1,19 +1,25 @@
 package com.bglobal.lib.webrtc.data.socket
 
-import com.bglobal.lib.webrtc.data.model.call.response.ParticipantApiModel
-import com.bglobal.lib.webrtc.data.model.call.response.RtcDtoResponse
-import com.bglobal.lib.webrtc.data.model.call.update.RtcDtoUpdate
+import com.bglobal.lib.webrtc.data.model.call.offer.OfferResponse
+import com.bglobal.lib.webrtc.data.model.call.ParticipantDTO
+import com.bglobal.lib.webrtc.data.model.call.answer.AnswerResponse
+import com.bglobal.lib.webrtc.data.model.call.peer.PeerResponse
 
 interface BglobalSocketListener {
     interface Response {
-        fun onRtcResponse(rtcDto: RtcDtoResponse)
+        fun onOffer(response: OfferResponse)
+        fun onPeer(response: PeerResponse)
     }
 
-    interface Update {
-        fun onRtcUpdate(rtcDto: RtcDtoUpdate)
+    interface Command {
+        fun onAnswer(rtcDto: AnswerResponse)
     }
 
     interface Event {
-        fun onParticipantList(participantList: List<ParticipantApiModel>)
+        fun onParticipantList(participantList: List<ParticipantDTO>)
+    }
+
+    interface Error {
+        fun onError(reason: String)
     }
 }

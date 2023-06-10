@@ -1,7 +1,20 @@
 package com.bglobal.lib.webrtc.data.socket
 
+typealias SOCKET_TYPE = BglobalSocketCommand.TYPE
+typealias SOCKET_TOPIC = BglobalSocketCommand.TOPIC
+
 object BglobalSocketCommand {
-    const val CMD_1 = ""
-    const val CMD_2 = ""
-    const val CMD_3 = ""
+    object TYPE {
+        const val CMD = "cmd"
+        const val RESPONSE = "response"
+        const val EVENT = "event"
+        const val ERROR = "error"
+    }
+
+    object TOPIC {
+        const val JOIN = "join"
+        const val UPDATE = "update"
+        const val PARTICIPANTS = "participants"
+        const val PEER = "peer"
+    }
 }

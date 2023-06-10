@@ -1,36 +1,64 @@
 package com.bglobal.lib.webrtc.data.socket
 
-import com.bglobal.lib.webrtc.data.model.call.request.DataDtoRequest
-import com.bglobal.lib.webrtc.data.model.call.request.RtcDtoRequest
+import com.bglobal.lib.webrtc.data.RtcException
+import com.bglobal.lib.webrtc.data.model.call.DataDTO
+import com.bglobal.lib.webrtc.data.model.call.ParticipantDTO
+import com.bglobal.lib.webrtc.data.model.call.answer.AnswerRequest
+import com.bglobal.lib.webrtc.data.model.call.offer.OfferRequest
+import com.bglobal.lib.webrtc.data.model.call.peer.PeerRequest
+import com.google.gson.GsonBuilder
 
 class HandleModel {
 
-    fun createOffer(name: String?, sdp: String): RtcDtoRequest {
-        val dataDto = DataDtoRequest(
+    private val gson = GsonBuilder().disableHtmlEscaping().create()
+
+    fun createOffer(name: String?, sdp: String): OfferRequest {
+        val dataDto = DataDTO(
             name = name,
             sdp = sdp
         )
 
-        val rtcDto = RtcDtoRequest(
-            type = "cmd",
-            transId = 0,
-            name = "join",
+        return OfferRequest(
             dataDto = dataDto
-        )
-
-        return rtcDto
+        ).apply {
+            this.type = SOCKET_TYPE.CMD
+            this.name = SOCKET_TOPIC.JOIN
+            this.transId = 0
+        }
     }
 
+    fun updateSdp(sdp: String?): AnswerRequest {
+        if (sdp == null) {
+            throw RtcException("sdp must not null")
+        }
 
-    fun update(sdp: String?): RtcDtoRequest {
-        val dataDtoRequest = DataDtoRequest(sdp = sdp)
+        val dataDtoRequest = DataDTO(sdp = sdp)
 
-        val rtcDto = RtcDtoRequest(
-            type = "response",
-            transId = 0,
+        return AnswerRequest(
             dataDto = dataDtoRequest
-        )
+        ).apply {
+            this.type = SOCKET_TYPE.RESPONSE
+            this.transId = 0
+        }
+    }
 
-        return rtcDto
+    fun getPeer(name: String, transId: Int = 0): PeerRequest {
+        val dataDto = DataDTO(name = name)
+
+        return PeerRequest(dataDto = dataDto).apply {
+            this.type = SOCKET_TYPE.CMD
+            this.name = SOCKET_TOPIC.PEER
+            this.transId = transId
+        }
+    }
+
+    fun getParticipant(rawData: String?): ParticipantDTO? {
+        if (rawData == null) return null
+        return try {
+            gson.fromJson(rawData, ParticipantDTO::class.java)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }

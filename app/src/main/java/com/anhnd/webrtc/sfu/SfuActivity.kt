@@ -7,8 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.SfuActivityBinding
 import com.anhnd.webrtc.utils.observer
 import com.bglobal.lib.publish.BglobalRtcListener
-import com.bglobal.lib.publish.ParticipantRtcModel
-import com.bglobal.lib.publish.RtcManager
+import com.bglobal.lib.publish.ParticipantRTC
+import com.bglobal.lib.publish.RtcController
 import org.webrtc.MediaStream
 
 class SfuActivity : AppCompatActivity() {
@@ -23,17 +23,21 @@ class SfuActivity : AppCompatActivity() {
 
 
 
-    private val rtcManager by lazy { RtcManager(application) }
+    private val rtcManager by lazy { RtcController(application) }
     private val rtcListener = object : BglobalRtcListener {
-        override fun onUserListInRoom(totalList: List<ParticipantRtcModel>) {
+        override fun onUserListInRoom(totalList: List<ParticipantRTC>) {
             Log.d(TAG, "\n\n onUserListInRoom   total = ${totalList.count()} ----------------------------------------------")
             totalList.forEach {
                 Log.d(TAG, "onUserListInRoom: id=${it.id} name=${it.name} streamId=${it.streamId} ")
             }
         }
 
-        override fun onUserJoinRoom(userJoin: ParticipantRtcModel) {
+        override fun onUserJoinRoom(userJoin: ParticipantRTC) {
             viewModel.userJoinRoom(userJoin)
+        }
+
+        override fun onUserLeaveRoom(userLeave: ParticipantRTC) {
+            viewModel.userLeaveRoom(userLeave)
         }
 
         override fun onAddStream(mediaStream: MediaStream?) {
@@ -78,6 +82,6 @@ class SfuActivity : AppCompatActivity() {
     }
 
     private fun doCall() {
-        rtcManager.createOffer()
+        rtcManager.startCall("anhnd")
     }
 }

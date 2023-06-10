@@ -1,14 +1,10 @@
-package com.bglobal.lib.webrtc.data.model.call.update
+package com.bglobal.lib.webrtc.data.model.call.answer
 
 import com.bglobal.lib.webrtc.data.model.base.RtcBaseResponse
 import com.google.gson.annotations.SerializedName
 
-data class RtcDtoUpdate(
-
-    @SerializedName("transId") var transId: Int? = null,
-
-    @SerializedName("data") var dataDto: DataDtoUpdate? = null
-
+data class AnswerResponse(
+    @SerializedName("data") var dataDto: AnswerDTO? = null
 ) : RtcBaseResponse() {
 
     fun getSdp(): String? {
