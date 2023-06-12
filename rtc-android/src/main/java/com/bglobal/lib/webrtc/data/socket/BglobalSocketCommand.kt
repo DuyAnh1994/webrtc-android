@@ -5,7 +5,7 @@ typealias SOCKET_TOPIC = BglobalSocketCommand.TOPIC
 
 object BglobalSocketCommand {
     object TYPE {
-        const val CMD = "cmd"
+        const val COMMAND = "cmd"
         const val RESPONSE = "response"
         const val EVENT = "event"
         const val ERROR = "error"

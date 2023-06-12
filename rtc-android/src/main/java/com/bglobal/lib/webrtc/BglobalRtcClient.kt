@@ -3,8 +3,9 @@ package com.bglobal.lib.webrtc
 import android.app.Application
 import android.os.Build
 import android.util.Log
-import com.bglobal.lib.webrtc.callback.SdpObserverImpl
 import com.bglobal.lib.utils.TAG
+import com.bglobal.lib.webrtc.callback.SdpObserverImpl
+import org.webrtc.AudioTrack
 import org.webrtc.Camera2Enumerator
 import org.webrtc.CameraVideoCapturer
 import org.webrtc.DefaultVideoDecoderFactory
@@ -18,6 +19,7 @@ import org.webrtc.PeerConnectionFactory
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceTextureHelper
 import org.webrtc.SurfaceViewRenderer
+import org.webrtc.VideoTrack
 import org.webrtc.audio.JavaAudioDeviceModule
 
 class BglobalRtcClient(
@@ -38,7 +40,7 @@ class BglobalRtcClient(
      */
     private val peerFactory by lazy { createPeerConnectionFactory() }
     private val peerConnection by lazy { createPeerConnection() }
-    val eglBase by lazy { EglBase.create() }
+    val eglBase by lazy { EglBase.create() } // TODO: anhnd cần kt lại khả năng bị leak
     private val iceServer: List<PeerConnection.IceServer> = listOf(
         PeerConnection.IceServer.builder(RTC_URL)
             .setUsername(USERNAME)
@@ -55,6 +57,9 @@ class BglobalRtcClient(
 //        mandatory.add(MediaConstraints.KeyValuePair("RtpDataChannels", "true"))
     }
 
+    private var localVideoCapture: CameraVideoCapturer? = null
+    private var localAudioTrack: AudioTrack? = null
+    private var localVideoTrack: VideoTrack? = null
     private val localVideoSource by lazy { peerFactory.createVideoSource(false) }
     private val localAudioSource by lazy { peerFactory.createAudioSource(constraints) }
 
@@ -170,15 +175,15 @@ class BglobalRtcClient(
     fun startLocalVideo(surface: SurfaceViewRenderer) {
         try {
             val surfaceTextureHelper = SurfaceTextureHelper.create(Thread.currentThread().name, eglBase.eglBaseContext)
-            val localVideoCapture = getCameraVideoCapture()
-            localVideoCapture.initialize(surfaceTextureHelper, surface.context, localVideoSource.capturerObserver)
-            localVideoCapture.startCapture(1920, 1080, 60)
+            localVideoCapture = getCameraVideoCapture()
+            localVideoCapture?.initialize(surfaceTextureHelper, surface.context, localVideoSource.capturerObserver)
+            localVideoCapture?.startCapture(1920, 1080, 60)
 
-            val localAudioTrack = peerFactory.createAudioTrack("local_audio_track", localAudioSource)
-            val localVideoTrack = peerFactory.createVideoTrack("local_video_track", localVideoSource)
+            localAudioTrack = peerFactory.createAudioTrack("local_audio_track", localAudioSource)
+            localVideoTrack = peerFactory.createVideoTrack("local_video_track", localVideoSource)
             localVideoTrack?.addSink(surface)
 
-//            peerConnection?.addTrack(localAudioTrack)
+            peerConnection?.addTrack(localAudioTrack)
             peerConnection?.addTrack(localVideoTrack)
 
         } catch (e: Exception) {
@@ -192,6 +197,18 @@ class BglobalRtcClient(
                 createCapturer(it, null)
             } ?: throw IllegalStateException()
         }
+    }
+
+    fun switchCamera(handler: CameraVideoCapturer.CameraSwitchHandler? = null) {
+        localVideoCapture?.switchCamera(handler)
+    }
+
+    fun toggleAudio(mute: Boolean) {
+        localAudioTrack?.setEnabled(mute)
+    }
+
+    fun volume(volume: Double) {
+        localAudioTrack?.setVolume(volume)
     }
 
     /**
@@ -247,6 +264,10 @@ class BglobalRtcClient(
 
 
         return peerFactory.createPeerConnection(rtcConfiguration, observer)
+    }
+
+    fun close() {
+        peerConnection?.close()
     }
 
     interface Callback {

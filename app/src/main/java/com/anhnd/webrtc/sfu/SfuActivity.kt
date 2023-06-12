@@ -8,7 +8,7 @@ import com.anhnd.webrtc.databinding.SfuActivityBinding
 import com.anhnd.webrtc.utils.observer
 import com.bglobal.lib.publish.BglobalRtcListener
 import com.bglobal.lib.publish.ParticipantRTC
-import com.bglobal.lib.publish.RtcController
+import com.bglobal.lib.publish.WebRTCController
 import org.webrtc.MediaStream
 
 class SfuActivity : AppCompatActivity() {
@@ -22,8 +22,7 @@ class SfuActivity : AppCompatActivity() {
     private val roomAdapter by lazy { RoomAdapter() }
 
 
-
-    private val rtcManager by lazy { RtcController(application) }
+    private val rtcManager by lazy { WebRTCController(application) }
     private val rtcListener = object : BglobalRtcListener {
         override fun onUserListInRoom(totalList: List<ParticipantRTC>) {
             Log.d(TAG, "\n\n onUserListInRoom   total = ${totalList.count()} ----------------------------------------------")
@@ -33,6 +32,7 @@ class SfuActivity : AppCompatActivity() {
         }
 
         override fun onUserJoinRoom(userJoin: ParticipantRTC) {
+            Log.d(TAG, "onUserJoinRoom: name=[${userJoin.name}]   streamId=[${userJoin.streamId}]")
             viewModel.userJoinRoom(userJoin)
         }
 
@@ -41,13 +41,15 @@ class SfuActivity : AppCompatActivity() {
         }
 
         override fun onAddStream(mediaStream: MediaStream?) {
+            Log.d(TAG, "onAddStream: ${mediaStream?.id}")
+
             if (!viewModel.isSameStreamDisplay(mediaStream)) {
                 viewModel.updateMediaStream(mediaStream)
             }
         }
 
         override fun onRemoveStream(mediaStream: MediaStream?) {
-//            viewModel.removeMediaStream(mediaStream)
+            viewModel.removeMediaStream(mediaStream)
         }
     }
 
@@ -69,6 +71,10 @@ class SfuActivity : AppCompatActivity() {
 
         binding.endCallButton.setOnClickListener {
             viewModel.check()
+        }
+
+        binding.btnSwitchCamera.setOnClickListener {
+            rtcManager.switchCamera()
         }
 
         observer(viewModel.participantListState) {

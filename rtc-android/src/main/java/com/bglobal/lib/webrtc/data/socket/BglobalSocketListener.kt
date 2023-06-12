@@ -3,12 +3,12 @@ package com.bglobal.lib.webrtc.data.socket
 import com.bglobal.lib.webrtc.data.model.call.offer.OfferResponse
 import com.bglobal.lib.webrtc.data.model.call.ParticipantDTO
 import com.bglobal.lib.webrtc.data.model.call.answer.AnswerResponse
-import com.bglobal.lib.webrtc.data.model.call.peer.PeerResponse
+import com.bglobal.lib.webrtc.data.model.call.peer.PeerDTO
 
 interface BglobalSocketListener {
     interface Response {
         fun onOffer(response: OfferResponse)
-        fun onPeer(response: PeerResponse)
+        fun onPeer(peerDTO: PeerDTO)
     }
 
     interface Command {

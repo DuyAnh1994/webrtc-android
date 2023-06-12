@@ -56,16 +56,14 @@ class SfuViewModel : ViewModel() {
 
     fun updateMediaStream(mediaStream: MediaStream?) {
         val index = participantList.indexOfFirst {
+            Log.d(TAG, "updateMediaStream  1: streamId=[${it.streamId}]   mediaStreamId=[${mediaStream?.id}]")
             it.streamId == mediaStream?.id
         }
 
-        Log.d(TAG, "updateMediaStream: $index")
+        Log.d(TAG, "updateMediaStream index: $index")
 
         if (index in 0..participantList.lastIndex) {
             participantList[index].mediaStream = mediaStream
-        } else {
-//            participantList.add(Participant())
-
         }
 
         _participantListState.postSelf()
@@ -77,7 +75,7 @@ class SfuViewModel : ViewModel() {
 
     fun isSameStreamDisplay(mediaStream: MediaStream?): Boolean {
         participantList.forEach {
-            if (it.mediaStream?.id == mediaStream?.id) {
+            if (it.streamId == mediaStream?.id) {
                 return true
             }
         }

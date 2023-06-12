@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.anhnd.webrtc.databinding.ParticipantItemBinding
 import com.anhnd.webrtc.sfu.domain.model.Participant
 import com.anhnd.webrtc.utils.initializeSurfaceView
-import com.bglobal.lib.publish.RtcController
+import com.bglobal.lib.publish.WebRTCController
 
 class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
 
@@ -16,7 +16,7 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
         const val PARTICIPANT_VIEW_TYPE = 1
     }
 
-    var rtcManager: RtcController? = null
+    var rtcManager: WebRTCController? = null
     private var currentList = mutableListOf<Participant>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticipantVH {

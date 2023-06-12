@@ -10,4 +10,6 @@ interface BglobalRtcListener {
     fun onAddStream(mediaStream: MediaStream?)
     fun onRemoveStream(mediaStream: MediaStream?)
 
+    fun onCameraSwitchDone(frontCamera: Boolean){}
+    fun onCameraSwitchError(reason: String){}
 }

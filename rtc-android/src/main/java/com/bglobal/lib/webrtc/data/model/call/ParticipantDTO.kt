@@ -15,6 +15,8 @@ data class ParticipantDTO(
 //    @SerializedName("streamMap") var streamMap: List<String>? = null, // server mới define, chưa cần sử dụng
 
 //    @SerializedName("streams") var streams: List<Any>? = null // luôn trả về null, k cần thiết sử dụng
+
+    var streamId: String? = null
 )
 
 fun ParticipantDTO.toParticipantRTC() = ParticipantRTC(

@@ -21,7 +21,7 @@ class HandleModel {
         return OfferRequest(
             dataDto = dataDto
         ).apply {
-            this.type = SOCKET_TYPE.CMD
+            this.type = SOCKET_TYPE.COMMAND
             this.name = SOCKET_TOPIC.JOIN
             this.transId = 0
         }
@@ -46,7 +46,7 @@ class HandleModel {
         val dataDto = DataDTO(name = name)
 
         return PeerRequest(dataDto = dataDto).apply {
-            this.type = SOCKET_TYPE.CMD
+            this.type = SOCKET_TYPE.COMMAND
             this.name = SOCKET_TOPIC.PEER
             this.transId = transId
         }

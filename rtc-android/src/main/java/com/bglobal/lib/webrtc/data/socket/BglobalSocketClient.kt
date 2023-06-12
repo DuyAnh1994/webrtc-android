@@ -7,7 +7,9 @@ import com.bglobal.lib.webrtc.data.model.base.RtcBaseResponse
 import com.bglobal.lib.webrtc.data.model.call.offer.OfferResponse
 import com.bglobal.lib.webrtc.data.model.call.answer.AnswerResponse
 import com.bglobal.lib.webrtc.data.model.call.participant.ParticipantResponse
+import com.bglobal.lib.webrtc.data.model.call.peer.PeerBridgeMap
 import com.bglobal.lib.webrtc.data.model.call.peer.PeerResponse
+import com.bglobal.lib.webrtc.data.model.call.peer.toDTO
 import com.google.gson.GsonBuilder
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
@@ -42,7 +44,7 @@ class BglobalSocketClient(
 
                 val baseResponse = gson.fromJson(message, RtcBaseResponse::class.java)
                 when (baseResponse.type) {
-                    SOCKET_TYPE.CMD -> onMsgByCommand(message, baseResponse.topic)
+                    SOCKET_TYPE.COMMAND -> onMsgByCommand(message, baseResponse.topic)
                     SOCKET_TYPE.RESPONSE -> onMsgByResponse(message, baseResponse.topic)
                     SOCKET_TYPE.EVENT -> onMsgByEvent(message, baseResponse.topic)
                     SOCKET_TYPE.ERROR -> onMsgByError(message, baseResponse.topic)
@@ -79,7 +81,10 @@ class BglobalSocketClient(
             responseListener.onOffer(response)
         } catch (e: Exception) {
             val response = gson.fromJson(rawData, PeerResponse::class.java)
-            responseListener.onPeer(response)
+            val peerBridgeDTO = gson.fromJson(response.data, PeerBridgeMap::class.java)
+            val peerDTO = peerBridgeDTO.toDTO()
+//            Log.d(TAG, "onMsgByResponse peerDTO: $peerDTO")
+            responseListener.onPeer(peerDTO)
         }
     }
 
