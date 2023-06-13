@@ -56,6 +56,7 @@ class WebRTCController(private val application: Application) {
             callback = callback
         )
         rtcAudioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.SPEAKER_PHONE)
+        toggleAudio(true)
     }
 
     fun startCall(name: String) {
@@ -112,6 +113,10 @@ class WebRTCController(private val application: Application) {
 
     fun switchCamera() {
         rtcClient?.switchCamera(cameraSwitchHandler)
+    }
+
+    fun toggleAudio(mute: Boolean) {
+        rtcClient?.toggleAudio(mute)
     }
 
     private fun getRoomState(newList: List<ParticipantRTC>): RoomState {

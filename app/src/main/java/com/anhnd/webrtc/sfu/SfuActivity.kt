@@ -77,6 +77,10 @@ class SfuActivity : AppCompatActivity() {
             rtcManager.switchCamera()
         }
 
+        binding.ivMute.setOnClickListener {
+//            rtcManager.toggleAudio()
+        }
+
         observer(viewModel.participantListState) {
             roomAdapter.submitList(it)
         }

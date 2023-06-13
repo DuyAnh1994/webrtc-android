@@ -55,18 +55,23 @@ class SfuViewModel : ViewModel() {
     }
 
     fun updateMediaStream(mediaStream: MediaStream?) {
-        val index = participantList.indexOfFirst {
-            Log.d(TAG, "updateMediaStream  1: streamId=[${it.streamId}]   mediaStreamId=[${mediaStream?.id}]")
-            it.streamId == mediaStream?.id
+//        val index = participantList.indexOfFirst {
+//            Log.d(TAG, "updateMediaStream  1: streamId=[${it.streamId}]   mediaStreamId=[${mediaStream?.id}]")
+//            it.streamId == mediaStream?.id
+//        }
+//
+//        Log.d(TAG, "updateMediaStream index: $index")
+//
+//        if (index in 0..participantList.lastIndex) {
+//            participantList[index].mediaStream = mediaStream
+//        }
+
+        try {
+            participantList[1].mediaStream = mediaStream
+            _participantListState.postSelf()
+        } catch (e: Exception) {
+
         }
-
-        Log.d(TAG, "updateMediaStream index: $index")
-
-        if (index in 0..participantList.lastIndex) {
-            participantList[index].mediaStream = mediaStream
-        }
-
-        _participantListState.postSelf()
     }
 
     private fun getItemById(id: Int): Participant? {

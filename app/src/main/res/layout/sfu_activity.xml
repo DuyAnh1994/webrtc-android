@@ -92,7 +92,7 @@
             app:srcCompat="@drawable/ic_baseline_cameraswitch_24" />
 
         <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/audio_output_button"
+            android:id="@+id/ivMute"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
