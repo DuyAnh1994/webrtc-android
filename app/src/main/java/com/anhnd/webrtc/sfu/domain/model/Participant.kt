@@ -7,7 +7,8 @@ import org.webrtc.SurfaceViewRenderer
 data class Participant(
     var id: Int,
     var name: String,
-    var streamId: String,
+    var streamIdOrigin: String,
+    var streamIdSecondary: MutableList<String> = mutableListOf(),
     var mediaStream: MediaStream? = null,
     var isLoaded: Boolean = false,
     var isLocal: Boolean = false
@@ -19,5 +20,13 @@ data class Participant(
         Log.d("anhnd", "addSink: ${mediaStream?.videoTracks?.firstOrNull()}")
         isLoaded = true
 //        }
+    }
+
+    fun getStreamIdSecondary(): String {
+        val sb = StringBuilder()
+        streamIdSecondary.forEachIndexed { i, v ->
+            sb.append("$i. ").append(v).append("\n")
+        }
+        return sb.toString()
     }
 }

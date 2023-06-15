@@ -1,0 +1,27 @@
+{
+  "type": "response",
+  "transId": 2,
+  "data": {
+    "models": [
+      {
+        "id": 0,
+        "name": "1",
+        "streamId": "eb80bac5-561f-42b4-940d-dd7d2b058799"
+      },
+      {
+        "id": 1,
+        "name": "2",
+        "streamId": "2285ef0b-35ed-41a6-9c6d-208eafe1f9b0"
+      }
+    ]
+  },
+  "map": {
+    "9da45644-9d09-4f13-b371-defb69f0222f": "2"
+  },
+  "instreams": [
+    "eb80bac5-561f-42b4-940d-dd7d2b058799"
+  ],
+  "outstreams": [
+    "9da45644-9d09-4f13-b371-defb69f0222f"
+  ]
+}

@@ -53,7 +53,12 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
                 rtcManager?.startLocalVideo(binding.svrUser)
             }
 
-            binding.tvIndex.text = "$adapterPosition"
+            binding.apply {
+                tvName.text = data.name
+                tvStreamIdOrigin.text = data.streamIdOrigin
+                tvStreamIdSecondary.text = data.getStreamIdSecondary()
+                tvMediaStreamInstance.text = "${data.mediaStream}"
+            }
             data.addSink(binding.svrUser)
         }
     }

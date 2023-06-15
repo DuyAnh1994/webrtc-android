@@ -4,12 +4,12 @@ import android.util.Log
 import com.bglobal.lib.utils.TAG
 import com.bglobal.lib.webrtc.data.model.base.RtcBaseRequest
 import com.bglobal.lib.webrtc.data.model.base.RtcBaseResponse
-import com.bglobal.lib.webrtc.data.model.call.offer.OfferResponse
+import com.bglobal.lib.webrtc.data.model.call.ParticipantDTO
 import com.bglobal.lib.webrtc.data.model.call.answer.AnswerResponse
+import com.bglobal.lib.webrtc.data.model.call.offer.OfferResponse
 import com.bglobal.lib.webrtc.data.model.call.participant.ParticipantResponse
 import com.bglobal.lib.webrtc.data.model.call.peer.PeerBridgeMap
 import com.bglobal.lib.webrtc.data.model.call.peer.PeerResponse
-import com.bglobal.lib.webrtc.data.model.call.peer.toDTO
 import com.google.gson.GsonBuilder
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
@@ -67,8 +67,9 @@ class BglobalSocketClient(
     private fun onMsgByCommand(rawData: String?, topic: String?) {
         when (topic) {
             SOCKET_TOPIC.UPDATE -> {
+                Log.d(TAG, "onMsgByCommand UPDATE rawData: $rawData")
                 val response = gson.fromJson(rawData, AnswerResponse::class.java)
-                commandListener.onAnswer(response)
+                commandListener.onUpdateOffer(response)
             }
         }
     }
@@ -82,9 +83,22 @@ class BglobalSocketClient(
         } catch (e: Exception) {
             val response = gson.fromJson(rawData, PeerResponse::class.java)
             val peerBridgeDTO = gson.fromJson(response.data, PeerBridgeMap::class.java)
-            val peerDTO = peerBridgeDTO.toDTO()
-//            Log.d(TAG, "onMsgByResponse peerDTO: $peerDTO")
-            responseListener.onPeer(peerDTO)
+            Log.d(TAG, "onMsgByResponse models: ${peerBridgeDTO.models}")
+            val participantDTOList = gson.fromJson(peerBridgeDTO.models, Array<ParticipantDTO>::class.java).toList()
+
+            val map: HashMap<String, String>? = gson.fromJson(peerBridgeDTO.map, HashMap::class.java) as? HashMap<String, String>
+
+            map?.forEach { (k, v)->
+                participantDTOList.forEach {
+                    if (v == it.name) {
+                        it.streamIdSecondary.add(k)
+                    }
+                }
+            }
+
+            Log.d(TAG, "onMsgByResponse: $participantDTOList")
+
+            responseListener.onPeer(participantDTOList)
         }
     }
 
@@ -98,15 +112,15 @@ class BglobalSocketClient(
     }
 
     private fun onMsgByError(rawData: String?, topic: String?) {
-        val reason = rawData?: ""
+        val reason = rawData ?: ""
         errorListener.onError(reason)
     }
 
-    fun sendMessageToSocket(rtcDto: RtcBaseRequest) {
+    fun sendMessageToSocket(rtcDto: RtcBaseRequest, extra: String? = null) {
         try {
             val json = gson.toJson(rtcDto)
 //            Log.d(TAG, "send json : type=${rtcDto.type} name=${rtcDto.name} transId=${rtcDto.transId}")
-            Log.d(TAG, "send json : $json")
+            Log.d(TAG, "\n\nemit:   extra=[$extra]   json=$json")
             webSocket?.send(json)
         } catch (e: Exception) {
             e.printStackTrace()

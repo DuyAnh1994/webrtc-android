@@ -27,25 +27,33 @@ class SfuActivity : AppCompatActivity() {
         override fun onUserListInRoom(totalList: List<ParticipantRTC>) {
             Log.d(TAG, "\n\n onUserListInRoom   total = ${totalList.count()} ----------------------------------------------")
             totalList.forEach {
-                Log.d(TAG, "onUserListInRoom: id=${it.id} name=${it.name} streamId=${it.streamId} ")
+                Log.d(TAG, "onUserListInRoom: id=${it.id} name=${it.name} streamId=${it.streamIdOrigin} ms=${it.mediaStream}")
             }
+
+            viewModel.replaceParticipantList(totalList)
         }
 
         override fun onUserJoinRoom(userJoin: ParticipantRTC) {
-            Log.d(TAG, "onUserJoinRoom: name=[${userJoin.name}]   streamId=[${userJoin.streamId}]")
-            viewModel.userJoinRoom(userJoin)
+            Log.d(TAG, "onUserJoinRoom: name=[${userJoin.name}]   streamId=[${userJoin.streamIdOrigin}]")
+//            viewModel.userJoinRoom(userJoin)
         }
 
         override fun onUserLeaveRoom(userLeave: ParticipantRTC) {
-            viewModel.userLeaveRoom(userLeave)
+//            viewModel.userLeaveRoom(userLeave)
         }
 
-        override fun onAddStream(mediaStream: MediaStream?) {
-            Log.d(TAG, "onAddStream: ${mediaStream?.id}")
 
-            if (!viewModel.isSameStreamDisplay(mediaStream)) {
-                viewModel.updateMediaStream(mediaStream)
-            }
+        override fun onAddStream(mediaStream: MediaStream?) {
+//            Log.d(TAG, "onAddStream: ${mediaStream?.id}")
+
+//            rtcManager.peer()
+//            if (!viewModel.isSameStreamDisplay(mediaStream)) {
+//                viewModel.updateMediaStream(mediaStream)
+//            } else {
+////            viewModel.addMediaStream(mediaStream)
+//            }
+
+            viewModel.addMediaStream(mediaStream)
         }
 
         override fun onRemoveStream(mediaStream: MediaStream?) {
@@ -68,6 +76,10 @@ class SfuActivity : AppCompatActivity() {
         }
 
         binding.ivCall.setOnClickListener { doCall() }
+
+        binding.ivCheckPartiList.setOnClickListener {
+            rtcManager.peer()
+        }
 
         binding.endCallButton.setOnClickListener {
             viewModel.check()
@@ -92,6 +104,13 @@ class SfuActivity : AppCompatActivity() {
     }
 
     private fun doCall() {
-        rtcManager.startCall("anhnd")
+        rtcManager.startCall(getRandomString())
+    }
+
+    private fun getRandomString(): String {
+        val allowedChars = ('a'..'z')
+        return (1..3)
+            .map { allowedChars.random() }
+            .joinToString("")
     }
 }

@@ -10,7 +10,6 @@ import com.bglobal.lib.webrtc.data.RtcException
 import com.bglobal.lib.webrtc.data.model.call.ParticipantDTO
 import com.bglobal.lib.webrtc.data.model.call.answer.AnswerResponse
 import com.bglobal.lib.webrtc.data.model.call.offer.OfferResponse
-import com.bglobal.lib.webrtc.data.model.call.peer.PeerDTO
 import com.bglobal.lib.webrtc.data.model.call.toParticipantRTC
 import com.bglobal.lib.webrtc.data.socket.BglobalSocketClient
 import com.bglobal.lib.webrtc.data.socket.BglobalSocketListener
@@ -22,6 +21,9 @@ import org.webrtc.CameraVideoCapturer
 import org.webrtc.EglBase
 import org.webrtc.IceCandidate
 import org.webrtc.MediaStream
+import org.webrtc.MediaStreamTrack
+import org.webrtc.RtpReceiver
+import org.webrtc.RtpTransceiver
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceViewRenderer
 
@@ -36,8 +38,12 @@ class WebRTCController(private val application: Application) {
     private var socket: BglobalSocketClient? = null
     private val handleModel by lazy { HandleModel() }
     private val rtcAudioManager by lazy { RTCAudioManager.create(application.applicationContext) }
+    private var myUser: ParticipantRTC? = null
     private var username = ""
     private val participantRTCList = mutableListOf<ParticipantRTC>()
+
+    //    private val mediaStreamList = mutableListOf<MediaStream>()
+    private var isOnAddTrackRunning = false
 
     init {
 
@@ -61,6 +67,16 @@ class WebRTCController(private val application: Application) {
 
     fun startCall(name: String) {
         username = name
+        myUser = ParticipantRTC(
+            id = 0,
+            name = username,
+            streamIdOrigin = "",
+            streamIdSecondary = mutableListOf()
+        )
+        myUser?.let {
+            participantRTCList.add(0, it)
+            rtcListener?.onUserListInRoom(participantRTCList)
+        }
         rtcClient?.createOffer()
     }
 
@@ -69,24 +85,32 @@ class WebRTCController(private val application: Application) {
             throw RtcException("sdp must not null")
         }
         val request = handleModel.createOffer(name = username, sdp = sdp)
-        socket?.sendMessageToSocket(request)
+        socket?.sendMessageToSocket(request, "create_offer")
     }
 
-    private fun offerResponse(sdp: String?) {
+    private fun offerResponse(joinedSdp: String?) {
         /*
          * set remote với type == ANSWER để stream lên server
          */
-        val session = SessionDescription(SessionDescription.Type.ANSWER, sdp)
+        val session = SessionDescription(SessionDescription.Type.ANSWER, joinedSdp)
         rtcClient?.setRemoteSdpByAnswer(session)
     }
 
-    private fun createAnswer(sdp: String?) {
+    private fun updateOffer(sdp: String?) {
+//        Log.d(TAG, "updateOffer  sdp  : $sdp")
+        /*
+         * chú ý: phải sử dụng sdp mà server trả về với type=cmd - name=update thì mới stream lên server được
+         */
         val offer = SessionDescription(SessionDescription.Type.OFFER, sdp)
         rtcClient?.setRemoteSdpByOffer(offer)
         rtcClient?.createAnswer {
             CoroutineScope(Dispatchers.IO).launch {
+                /*
+                * chú ý: sdp truyền lên phải là sdp sau khi create answer tù instance của peer connection
+                *
+                * */
                 val request = handleModel.updateSdp(it?.description)
-                socket?.sendMessageToSocket(request)
+                socket?.sendMessageToSocket(request, "update")
             }
         }
     }
@@ -119,6 +143,11 @@ class WebRTCController(private val application: Application) {
         rtcClient?.toggleAudio(mute)
     }
 
+    fun peer() {
+        val request = handleModel.getPeer(username)
+        socket?.sendMessageToSocket(request, "peer")
+    }
+
     private fun getRoomState(newList: List<ParticipantRTC>): RoomState {
         return when {
             newList.count() == participantRTCList.count() -> RoomState.NONE
@@ -142,11 +171,12 @@ class WebRTCController(private val application: Application) {
         newList.forEach { newItem ->
             if (participantRTCList.isEmpty()) {
                 return newItem
-            }
-            participantRTCList.forEach { oldItem ->
-                Log.d(TAG, "findUserInRoom: ${newItem.name}    =========    ${oldItem.name}")
-                if (newItem.name != oldItem.name) {
-                    parti = newItem
+            } else {
+                participantRTCList.forEach { oldItem ->
+                    Log.d(TAG, "findUserInRoom: ${newItem.name}    =========    ${oldItem.name}")
+                    if (newItem.name != oldItem.name) {
+                        parti = newItem
+                    }
                 }
             }
         }
@@ -161,7 +191,7 @@ class WebRTCController(private val application: Application) {
             if (item == null) {
                 val parti = ParticipantDTO(
                     name = v,
-                    streamId = k
+                    streamIdOrigin = k
                 )
                 list.add(parti)
             }
@@ -188,12 +218,73 @@ class WebRTCController(private val application: Application) {
         }
     }
 
+//    private val peerConnectionObserverImpl = object : PeerConnection.Observer {
+//        override fun onSignalingChange(p0: PeerConnection.SignalingState?) {}
+//        override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {}
+//        override fun onIceConnectionReceivingChange(p0: Boolean) {}
+//        override fun onIceGatheringChange(p0: PeerConnection.IceGatheringState?) {}
+//        override fun onIceCandidate(p0: IceCandidate?) {
+//            rtcClient?.addIceCandidate(p0)
+//        }
+//
+//        override fun onIceCandidatesRemoved(p0: Array<out IceCandidate>?) {}
+//        override fun onAddStream(p0: MediaStream?) {}
+//        override fun onRemoveStream(p0: MediaStream?) {}
+//        override fun onDataChannel(p0: DataChannel?) {}
+//        override fun onRenegotiationNeeded() {}
+//        override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {
+//            Log.d(TAG, "\n\n onAddTrack =================================")
+//            p1?.forEach {
+//                Log.d(TAG, "id=[$it]")
+//            }
+//        }
+//    }
+
     private val peerConnectionObserverImpl = object : PeerConnectionObserverImpl() {
         override fun onIceCandidate(iceCandidate: IceCandidate?) {
             rtcClient?.addIceCandidate(iceCandidate)
         }
 
+        override fun onTrack(transceiver: RtpTransceiver?) {
+//            transceiver?.sender?.streams?.forEach {
+//                Log.d(TAG, "onTrack ccccccc: $it")
+//            }
+            Log.d(TAG, "onTrack: ${transceiver?.sender?.track()}")
+        }
+
+        override fun onAddTrack(rtpReceiver: RtpReceiver?, mediaStreamList: Array<out MediaStream>?) {
+
+//            Log.d(TAG, "onAddTrack: rtpReceiver_id: ${rtpReceiver?.id()}")
+
+            val track : MediaStreamTrack = rtpReceiver?.track() ?: return
+            Log.d(TAG, "onAddTrack: id=${track.id()} kind=${track.id()}")
+
+
+
+            Log.d(TAG, "\n\n onAddTrack =================================")
+            mediaStreamList?.forEach {
+                Log.d(TAG, "id=[$it]")
+            }
+
+//            isOnAddTrackRunning = true
+//            peer()
+
+
+//            participantRTCList.forEach { rtc ->
+//                mediaStreamList?.forEach { ms ->
+//                    Log.d(TAG, "onAddTrack: ${rtc.streamIdSecondary}    ----     ${ms.id}")
+//                    if (rtc.streamIdSecondary.contains(ms.id)) {
+//                        rtc.mediaStream = ms
+//                    }
+//                }
+//            }
+//
+//
+//            rtcListener?.onUserListInRoom(participantRTCList)
+        }
+
         override fun onAddStream(mediaStream: MediaStream?) {
+//            Log.d(TAG, "\n\nonAddStream: ${mediaStream?.id}")
             rtcListener?.onAddStream(mediaStream)
         }
 
@@ -203,8 +294,8 @@ class WebRTCController(private val application: Application) {
     }
 
     private val commandListener = object : BglobalSocketListener.Command {
-        override fun onAnswer(rtcDto: AnswerResponse) {
-            createAnswer(rtcDto.getSdp())
+        override fun onUpdateOffer(rtcDto: AnswerResponse) {
+            updateOffer(rtcDto.getSdp())
         }
     }
 
@@ -213,103 +304,53 @@ class WebRTCController(private val application: Application) {
             offerResponse(response.getSdp())
             CoroutineScope(Dispatchers.IO).launch {
                 val request = handleModel.getPeer(username)
-                socket?.sendMessageToSocket(request)
-
-//                val partiList = response.dataDto?.roomDto?.participants?.map {
-//                    it.toParticipantRTC()
-//                } ?: mutableListOf()
-//
-//                val user = ParticipantRTC(
-//                    id = 0,
-//                    name = "name",
-//                    streamId = "mediaStreamID"
-//                )
-//
-//                rtcListener?.onUserJoinRoom(user)
+                socket?.sendMessageToSocket(request, "peer")
             }
-            createAnswer(response.getSdp())
         }
 
-        override fun onPeer(peerDTO: PeerDTO) {
-//            val participantDTO = handleModel.getParticipant(response.data)
-//            participantDTO?.toParticipantRTC()?.let { rtcListener?.onUserJoinRoom(it) }
-
-//            if (participantRTCList.isEmpty()) {
-//                peerDTO.map?.forEach { (k, v) ->
-//                    val item = ParticipantRTC(
-//                        id = -1,
-//                        name = v,
-//                        streamId = k
-//                    )
-//                    participantRTCList.add(item)
-//                }
-//            } else {
-//                peerDTO.map?.forEach { (k, v) ->
-//                    participantRTCList.forEach {
-//                        if (it.name == v) {
-//                            it.streamId = k
-//                        }
-//                    }
-//                }
-//            }
-
-
-//            val keyList = peerDTO.map?.keys?.toList() ?: emptyList()
-            val list = mapConvertToList(peerDTO.map).map { it.toParticipantRTC() }
-            val state = getRoomState(list)
-            Log.d(TAG, "onPeer state: $state")
-            when (state) {
-                RoomState.USER_JOIN -> {
-                    val user = findUserInRoom(list)
-                    user?.let { rtcListener?.onUserJoinRoom(it) }
-                }
-
-                RoomState.USER_LEAVE -> {
-                    val user = findUserInRoom(list)
-                    user?.let { rtcListener?.onUserLeaveRoom(it) }
-                }
-
-                else -> {}
+        override fun onPeer(participantDTOList: List<ParticipantDTO>) {
+            val dtoList = participantDTOList.map {
+                it.toParticipantRTC()
             }
 
-            participantRTCList.replace(list)
-            rtcListener?.onUserListInRoom(participantRTCList)
+//            when (getRoomState(dtoList)) {
+//                RoomState.USER_JOIN -> {
+//                    val user = findUserInRoom(dtoList)
+//                    user?.let {
+//                        rtcListener?.onUserJoinRoom(it)
+//                    }
+//                }
+//
+//                RoomState.USER_LEAVE -> {
+//                    val user = findUserInRoom(dtoList)
+//                    user?.let {
+//                        rtcListener?.onUserLeaveRoom(it)
+//                    }
+//                }
+//
+//                else -> {}
+//            }
+            Log.d(TAG, "\nonPeer: $dtoList")
+
+            participantRTCList.replace(dtoList)
+//            rtcListener?.onUserListInRoom(participantRTCList)
         }
     }
 
     private val eventListener = object : BglobalSocketListener.Event {
         override fun onParticipantList(participantList: List<ParticipantDTO>) {
             CoroutineScope(Dispatchers.IO).launch {
-//                val list = participantList.map { it.toParticipantRTC() }
-//
-//                when (getRoomState(list)) {
-//                    RoomState.USER_JOIN -> {
-//                        val newUser = findUserJoinRoom(list)
-//                        newUser?.let {
-//                            rtcListener?.onUserJoinRoom(it)
-//                        }
-//                    }
-//
-//                    RoomState.USER_LEAVE -> {
-//                        val newUser = findUserJoinRoom(list)
-//                        newUser?.let {
-//                            rtcListener?.onUserLeaveRoom(it)
-//                        }
-//                    }
-//
-//                    else -> {}
-//                }
-//
-//                participantRTCList.replace(list)
-//                rtcListener?.onUserListInRoom(participantRTCList)
-
                 /*
                  - tạm thời xử lý như sau:
                  nếu mình đang ở trong room thì callback này được gọi khi có user join room,
                  lúc này gọi peer để lấy thông tin các user trong room. bao gồm cả id, name, streamId
                  */
-                val request = handleModel.getPeer(username)
-                socket?.sendMessageToSocket(request)
+
+                // TODO: xử lý ở đây đang bất đồng bộ, xem xét gọi peer ở onAddStream/onAddTrack
+                if (!isOnAddTrackRunning) {
+                    val request = handleModel.getPeer(username)
+                    socket?.sendMessageToSocket(request, "peer")
+                }
             }
         }
     }

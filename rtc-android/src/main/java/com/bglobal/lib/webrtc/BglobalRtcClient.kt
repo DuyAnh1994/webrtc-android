@@ -5,6 +5,7 @@ import android.os.Build
 import android.util.Log
 import com.bglobal.lib.utils.TAG
 import com.bglobal.lib.webrtc.callback.SdpObserverImpl
+import org.webrtc.AudioSource
 import org.webrtc.AudioTrack
 import org.webrtc.Camera2Enumerator
 import org.webrtc.CameraVideoCapturer
@@ -19,8 +20,10 @@ import org.webrtc.PeerConnectionFactory
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceTextureHelper
 import org.webrtc.SurfaceViewRenderer
+import org.webrtc.VideoSource
 import org.webrtc.VideoTrack
 import org.webrtc.audio.JavaAudioDeviceModule
+import java.util.UUID
 
 class BglobalRtcClient(
     private val application: Application,
@@ -38,9 +41,7 @@ class BglobalRtcClient(
     /**
      * peer
      */
-    private val peerFactory by lazy { createPeerConnectionFactory() }
-    private val peerConnection by lazy { createPeerConnection() }
-    val eglBase by lazy { EglBase.create() } // TODO: anhnd cần kt lại khả năng bị leak
+    val eglBase = EglBase.create()  // TODO: anhnd cần kt lại khả năng bị leak
     private val iceServer: List<PeerConnection.IceServer> = listOf(
         PeerConnection.IceServer.builder(RTC_URL)
             .setUsername(USERNAME)
@@ -48,24 +49,28 @@ class BglobalRtcClient(
             .createIceServer()
     )
 
-    /**
-     * local
-     */
+    private val peerFactory: PeerConnectionFactory
+    private var peerConnection: PeerConnection? = null
+    private val localAudioSource: AudioSource
+    private val localVideoSource: VideoSource
+
     private val constraints = MediaConstraints().apply {
-        mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-        mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
+        mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
+        mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
+        optional.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"))
 //        mandatory.add(MediaConstraints.KeyValuePair("RtpDataChannels", "true"))
     }
-
     private var localVideoCapture: CameraVideoCapturer? = null
     private var localAudioTrack: AudioTrack? = null
     private var localVideoTrack: VideoTrack? = null
-    private val localVideoSource by lazy { peerFactory.createVideoSource(false) }
-    private val localAudioSource by lazy { peerFactory.createAudioSource(constraints) }
 
 
     init {
         initPeerConnectionFactory()
+        peerFactory = createPeerConnectionFactory()
+        peerConnection = createPeerConnection()
+        localAudioSource = peerFactory.createAudioSource(constraints)
+        localVideoSource = peerFactory.createVideoSource(false)
     }
 
     /**
@@ -183,12 +188,35 @@ class BglobalRtcClient(
             localVideoTrack = peerFactory.createVideoTrack("local_video_track", localVideoSource)
             localVideoTrack?.addSink(surface)
 
-            peerConnection?.addTrack(localAudioTrack)
-            peerConnection?.addTrack(localVideoTrack)
+            val id = UUID.randomUUID().toString()   // "custom_id_${getRandomString()}"
+//            val localMediaStream = peerFactory.createLocalMediaStream(id)
+//            localMediaStream.addTrack(localAudioTrack)
+//            localMediaStream.addTrack(localVideoTrack)
 
+            peerConnection?.addTrack(localAudioTrack, listOf(id))
+            peerConnection?.addTrack(localVideoTrack, listOf(id))
+
+
+//            val audioRtpReceiver = peerConnection?.addTransceiver(localAudioTrack)
+//            val videoRtpReceiver = peerConnection?.addTransceiver(localVideoTrack)
+
+//            Log.d(TAG, "startLocalVideo: 1:  ${audioRtpReceiver?.streams}   ${localAudioTrack?.id()}")
+//            Log.d(TAG, "startLocalVideo: 2:  ${videoRtpReceiver?.streams}   ${localVideoTrack?.id()}")
+
+
+//
+//            Log.d(TAG, "startLocalVideo stream_id: ${localStream.id}")
+//            peerConnection?.addStream(localMediaStream) // ko thể sử dụng với UNIFIED_PLAN
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun getRandomString() : String {
+        val allowedChars = ('a'..'z')
+        return (1..3)
+            .map { allowedChars.random() }
+            .joinToString("")
     }
 
     private fun getCameraVideoCapture(): CameraVideoCapturer {
@@ -262,8 +290,8 @@ class BglobalRtcClient(
 //            candidateNetworkPolicy = PeerConnection.CandidateNetworkPolicy.ALL
         }
 
-
         return peerFactory.createPeerConnection(rtcConfiguration, observer)
+//        return peerFactory.createPeerConnection(iceServer, observer)
     }
 
     fun close() {

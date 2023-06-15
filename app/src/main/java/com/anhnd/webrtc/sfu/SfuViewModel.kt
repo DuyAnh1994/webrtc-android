@@ -8,6 +8,7 @@ import com.anhnd.webrtc.sfu.domain.model.Participant
 import com.anhnd.webrtc.utils.asLiveData
 import com.anhnd.webrtc.utils.postSelf
 import com.bglobal.lib.publish.ParticipantRTC
+import com.bglobal.lib.utils.replace
 import kotlinx.coroutines.launch
 import org.webrtc.MediaStream
 
@@ -27,10 +28,24 @@ class SfuViewModel : ViewModel() {
         val item = Participant(
             id = 0,
             name = "",
-            streamId = "",
+            streamIdOrigin = "",
             isLocal = true
         )
         participantList.add(item)
+        _participantListState.postSelf()
+    }
+
+    fun replaceParticipantList(list: List<ParticipantRTC>) {
+        val newList = list.map {
+            Participant(
+                id = it.id,
+                name = it.name,
+                streamIdOrigin = it.streamIdOrigin,
+                streamIdSecondary = it.streamIdSecondary,
+                mediaStream = it.mediaStream
+            )
+        }
+        _participantListState.value?.replace(newList)
         _participantListState.postSelf()
     }
 
@@ -39,7 +54,8 @@ class SfuViewModel : ViewModel() {
             val item = Participant(
                 id = user.id,
                 name = user.name,
-                streamId = user.streamId
+                streamIdOrigin = user.streamIdOrigin,
+                streamIdSecondary = user.streamIdSecondary
             )
             participantList.add(item)
             _participantListState.postSelf()
@@ -56,31 +72,55 @@ class SfuViewModel : ViewModel() {
 
     fun updateMediaStream(mediaStream: MediaStream?) {
 //        val index = participantList.indexOfFirst {
-//            Log.d(TAG, "updateMediaStream  1: streamId=[${it.streamId}]   mediaStreamId=[${mediaStream?.id}]")
-//            it.streamId == mediaStream?.id
+////            Log.d(TAG, "updateMediaStream  1: streamId=[${it.streamId}]   mediaStreamId=[${mediaStream?.id}]")
+////            it.streamIdSecondary.contains(mediaStream?.id)
+//
+//            containsStreamIdSecondary(it.streamIdSecondary, mediaStream?.id)
 //        }
-//
+
+        participantList.forEach {
+            it.streamIdSecondary.forEach {subId->
+                Log.d(TAG, "updateMediaStream: $subId   ${mediaStream?.id}   ${subId==mediaStream?.id}")
+            }
+        }
+
 //        Log.d(TAG, "updateMediaStream index: $index")
-//
+
 //        if (index in 0..participantList.lastIndex) {
 //            participantList[index].mediaStream = mediaStream
 //        }
+    }
 
+    private fun containsStreamIdSecondary(list: List<String>, id: String?): Boolean {
+        list.forEach {
+            Log.d(TAG, "containsStreamIdSecondary: sub_id=[$it]     id=[$id]")
+
+            if (it == id) return true
+        }
+        return false
+    }
+
+    fun addMediaStream(stream: MediaStream?) {
         try {
-            participantList[1].mediaStream = mediaStream
+            participantList.add(Participant(
+                id = 0,
+                name = stream?.id ?: "",
+                streamIdOrigin = stream?.id ?: "",
+                mediaStream = stream
+            ))
             _participantListState.postSelf()
         } catch (e: Exception) {
-
+            e.printStackTrace()
         }
     }
 
-    private fun getItemById(id: Int): Participant? {
-        return participantList.firstOrNull { it.id == id }
+    private fun getItemById(id: String?): Participant? {
+        return participantList.firstOrNull { it.streamIdOrigin == id }
     }
 
     fun isSameStreamDisplay(mediaStream: MediaStream?): Boolean {
         participantList.forEach {
-            if (it.streamId == mediaStream?.id) {
+            if (it.streamIdSecondary.contains(mediaStream?.id)) {
                 return true
             }
         }
@@ -88,7 +128,7 @@ class SfuViewModel : ViewModel() {
     }
 
     fun removeMediaStream(mediaStream: MediaStream?) {
-        val item = getItemById(0)
+        val item = getItemById(mediaStream?.id)
         participantList.remove(item)
         _participantListState.postSelf()
     }

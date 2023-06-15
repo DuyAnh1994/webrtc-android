@@ -8,19 +8,14 @@ data class ParticipantDTO(
 
     @SerializedName("name") var name: String? = null,
 
-    @SerializedName("streamsIn") var streamsIn: List<String>? = null,
+    @SerializedName("streamId") var streamIdOrigin: String? = null,
 
-    @SerializedName("streamsOut") var streamsOut: List<String>? = null,
-
-//    @SerializedName("streamMap") var streamMap: List<String>? = null, // server mới define, chưa cần sử dụng
-
-//    @SerializedName("streams") var streams: List<Any>? = null // luôn trả về null, k cần thiết sử dụng
-
-    var streamId: String? = null
+    var streamIdSecondary: MutableList<String> = mutableListOf()
 )
 
 fun ParticipantDTO.toParticipantRTC() = ParticipantRTC(
     id = this.id ?: 0,
     name = this.name ?: "",
-    streamId = streamsIn?.firstOrNull() ?: ""
+    streamIdOrigin = streamIdOrigin ?: "",
+    streamIdSecondary = streamIdSecondary
 )

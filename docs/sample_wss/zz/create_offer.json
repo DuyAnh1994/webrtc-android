@@ -1,0 +1,32 @@
+{
+  "models": [
+    {
+      "id": 67,
+      "name": "1",
+      "streamId": "7a9b9d81-7827-4ae0-b148-d5cb113f545f"
+    },
+    {
+      "id": 75,
+      "name": "otn",
+      "streamId": "5c840ade-8f03-4fe0-b870-be2b94331b0d"
+    },
+    {
+      "id": 76,
+      "name": "2",
+      "streamId": "ad58e311-519c-4104-906d-5f821f0c8b1a"
+    }
+  ],
+  "map": {
+    "8cea82fc-a7de-4ca4-9b8d-21710f31321f": "otn",
+    "e3b87110-630a-423e-bc33-6fc0d90167d9": "otn",
+    "3d78dd20-207f-410b-9241-21a31153ed8c": "2"
+  },
+  "instreams": [
+    "7a9b9d81-7827-4ae0-b148-d5cb113f545f"
+  ],
+  "outstreams": [
+    "8cea82fc-a7de-4ca4-9b8d-21710f31321f",
+    "e3b87110-630a-423e-bc33-6fc0d90167d9",
+    "3d78dd20-207f-410b-9241-21a31153ed8c"
+  ]
+}
