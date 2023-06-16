@@ -1,7 +1,6 @@
 package com.bglobal.lib.webrtc
 
 import android.app.Application
-import android.os.Build
 import android.util.Log
 import com.bglobal.lib.utils.TAG
 import com.bglobal.lib.webrtc.callback.SdpObserverImpl
@@ -22,7 +21,6 @@ import org.webrtc.SurfaceTextureHelper
 import org.webrtc.SurfaceViewRenderer
 import org.webrtc.VideoSource
 import org.webrtc.VideoTrack
-import org.webrtc.audio.JavaAudioDeviceModule
 import java.util.UUID
 
 class BglobalRtcClient(
@@ -57,13 +55,12 @@ class BglobalRtcClient(
     private val constraints = MediaConstraints().apply {
         mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
         mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
-        optional.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"))
+//        optional.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"))
 //        mandatory.add(MediaConstraints.KeyValuePair("RtpDataChannels", "true"))
     }
     private var localVideoCapture: CameraVideoCapturer? = null
     private var localAudioTrack: AudioTrack? = null
     private var localVideoTrack: VideoTrack? = null
-
 
     init {
         initPeerConnectionFactory()
@@ -86,6 +83,11 @@ class BglobalRtcClient(
             override fun onCreateFailure(p0: String?) {
                 Log.d(TAG, "=> [FAIL] 1. createOffer reason=[$p0]")
             }
+        }
+
+        val constraints = MediaConstraints().apply {
+            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
+            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
         }
 
         peerConnection?.createOffer(sdpObserverByCreate, constraints)
@@ -138,6 +140,11 @@ class BglobalRtcClient(
             }
         }
 
+        val constraints = MediaConstraints().apply {
+            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
+            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
+        }
+
         peerConnection?.createAnswer(sdpObserver, constraints)
     }
 
@@ -188,31 +195,15 @@ class BglobalRtcClient(
             localVideoTrack = peerFactory.createVideoTrack("local_video_track", localVideoSource)
             localVideoTrack?.addSink(surface)
 
-            val id = UUID.randomUUID().toString()   // "custom_id_${getRandomString()}"
-//            val localMediaStream = peerFactory.createLocalMediaStream(id)
-//            localMediaStream.addTrack(localAudioTrack)
-//            localMediaStream.addTrack(localVideoTrack)
-
+            val id = UUID.randomUUID().toString()
             peerConnection?.addTrack(localAudioTrack, listOf(id))
             peerConnection?.addTrack(localVideoTrack, listOf(id))
-
-
-//            val audioRtpReceiver = peerConnection?.addTransceiver(localAudioTrack)
-//            val videoRtpReceiver = peerConnection?.addTransceiver(localVideoTrack)
-
-//            Log.d(TAG, "startLocalVideo: 1:  ${audioRtpReceiver?.streams}   ${localAudioTrack?.id()}")
-//            Log.d(TAG, "startLocalVideo: 2:  ${videoRtpReceiver?.streams}   ${localVideoTrack?.id()}")
-
-
-//
-//            Log.d(TAG, "startLocalVideo stream_id: ${localStream.id}")
-//            peerConnection?.addStream(localMediaStream) // ko thể sử dụng với UNIFIED_PLAN
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    private fun getRandomString() : String {
+    private fun getRandomString(): String {
         val allowedChars = ('a'..'z')
         return (1..3)
             .map { allowedChars.random() }
@@ -261,19 +252,19 @@ class BglobalRtcClient(
             .setVideoEncoderFactory(encoderFactory)
             .setVideoDecoderFactory(decoderFactory)
             .setOptions(option)
-            .setAudioDeviceModule(JavaAudioDeviceModule.builder(application)
-                .setUseHardwareAcousticEchoCanceler(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-                .setUseHardwareNoiseSuppressor(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-
-//                .setAudioRecordErrorCallback()
-//                .setAudioTrackErrorCallback()
-//                .setAudioRecordStateCallback()
-//                .setAudioTrackStateCallback()
-
-                .createAudioDeviceModule().also {
-                    it.setMicrophoneMute(false)
-                    it.setSpeakerMute(false)
-                })
+//            .setAudioDeviceModule(JavaAudioDeviceModule.builder(application)
+//                .setUseHardwareAcousticEchoCanceler(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+//                .setUseHardwareNoiseSuppressor(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+//
+////                .setAudioRecordErrorCallback()
+////                .setAudioTrackErrorCallback()
+////                .setAudioRecordStateCallback()
+////                .setAudioTrackStateCallback()
+//
+//                .createAudioDeviceModule().also {
+//                    it.setMicrophoneMute(false)
+//                    it.setSpeakerMute(false)
+//                })
 
         return builder.createPeerConnectionFactory()
     }
@@ -282,12 +273,8 @@ class BglobalRtcClient(
 
         val rtcConfiguration = RTCConfiguration(iceServer).apply {
             sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
-//            iceTransportsType = PeerConnection.IceTransportsType.ALL
-//            bundlePolicy = PeerConnection.BundlePolicy.MAXCOMPAT
-//            disableIpv6 = true
-//            disableIPv6OnWifi = true
-//            iceBackupCandidatePairPingInterval = 1000
-//            candidateNetworkPolicy = PeerConnection.CandidateNetworkPolicy.ALL
+            bundlePolicy = PeerConnection.BundlePolicy.MAXCOMPAT
+            rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
         }
 
         return peerFactory.createPeerConnection(rtcConfiguration, observer)

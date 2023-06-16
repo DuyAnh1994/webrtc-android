@@ -21,14 +21,14 @@ class SfuViewModel : ViewModel() {
     val participantListState = _participantListState.asLiveData()
 
     init {
-        initLocalStream()
+//        initLocalStream()
     }
 
     private fun initLocalStream() {
         val item = Participant(
             id = 0,
-            name = "",
-            streamIdOrigin = "",
+            name = "n/a",
+            streamIdOrigin = "n/a",
             isLocal = true
         )
         participantList.add(item)
@@ -71,24 +71,24 @@ class SfuViewModel : ViewModel() {
     }
 
     fun updateMediaStream(mediaStream: MediaStream?) {
-//        val index = participantList.indexOfFirst {
-////            Log.d(TAG, "updateMediaStream  1: streamId=[${it.streamId}]   mediaStreamId=[${mediaStream?.id}]")
-////            it.streamIdSecondary.contains(mediaStream?.id)
-//
-//            containsStreamIdSecondary(it.streamIdSecondary, mediaStream?.id)
-//        }
+        val index = participantList.indexOfFirst {
+//            Log.d(TAG, "updateMediaStream  1: streamId=[${it.streamId}]   mediaStreamId=[${mediaStream?.id}]")
+//            it.streamIdSecondary.contains(mediaStream?.id)
 
-        participantList.forEach {
-            it.streamIdSecondary.forEach {subId->
-                Log.d(TAG, "updateMediaStream: $subId   ${mediaStream?.id}   ${subId==mediaStream?.id}")
-            }
+            containsStreamIdSecondary(it.streamIdSecondary, mediaStream?.id)
         }
+
+//        participantList.forEach {
+//            it.streamIdSecondary.forEach {subId->
+//                Log.d(TAG, "updateMediaStream: $subId   ${mediaStream?.id}   ${subId==mediaStream?.id}")
+//            }
+//        }
 
 //        Log.d(TAG, "updateMediaStream index: $index")
 
-//        if (index in 0..participantList.lastIndex) {
-//            participantList[index].mediaStream = mediaStream
-//        }
+        if (index in 0..participantList.lastIndex) {
+            participantList[index].mediaStream = mediaStream
+        }
     }
 
     private fun containsStreamIdSecondary(list: List<String>, id: String?): Boolean {

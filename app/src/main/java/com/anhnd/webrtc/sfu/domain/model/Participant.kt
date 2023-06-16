@@ -23,7 +23,7 @@ data class Participant(
     }
 
     fun getStreamIdSecondary(): String {
-        val sb = StringBuilder()
+        val sb = StringBuilder("streamId: \n")
         streamIdSecondary.forEachIndexed { i, v ->
             sb.append("$i. ").append(v).append("\n")
         }

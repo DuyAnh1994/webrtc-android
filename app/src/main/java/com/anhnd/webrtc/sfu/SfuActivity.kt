@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.SfuActivityBinding
+import com.anhnd.webrtc.utils.initializeSurfaceView
 import com.anhnd.webrtc.utils.observer
 import com.bglobal.lib.publish.BglobalRtcListener
 import com.bglobal.lib.publish.ParticipantRTC
@@ -20,7 +21,8 @@ class SfuActivity : AppCompatActivity() {
     private lateinit var binding: SfuActivityBinding
     private val viewModel by viewModels<SfuViewModel>()
     private val roomAdapter by lazy { RoomAdapter() }
-
+    private val streamIdList = mutableListOf<String?>()
+//    private val streamIdSB = StringBuilder("onAddTrack:\n")
 
     private val rtcManager by lazy { WebRTCController(application) }
     private val rtcListener = object : BglobalRtcListener {
@@ -50,14 +52,38 @@ class SfuActivity : AppCompatActivity() {
 //            if (!viewModel.isSameStreamDisplay(mediaStream)) {
 //                viewModel.updateMediaStream(mediaStream)
 //            } else {
-////            viewModel.addMediaStream(mediaStream)
+//            viewModel.addMediaStream(mediaStream)
 //            }
 
-            viewModel.addMediaStream(mediaStream)
+//            viewModel.addMediaStream(mediaStream)
+
+            streamIdList.add(mediaStream?.id)
+
+            val streamIdSB = StringBuilder("onAddTrack:\n")
+
+            streamIdList.forEachIndexed { i, v ->
+                streamIdSB.append("\n $i. $v")
+            }
+
+            runOnUiThread {
+                binding.tvMediaStreamCallback.text = streamIdSB.toString()
+            }
         }
 
         override fun onRemoveStream(mediaStream: MediaStream?) {
-            viewModel.removeMediaStream(mediaStream)
+//            viewModel.removeMediaStream(mediaStream)
+
+            streamIdList.remove(mediaStream?.id)
+
+            val streamIdSB = StringBuilder("onAddTrack:\n")
+
+            streamIdList.forEachIndexed { i, v ->
+                streamIdSB.append("\n $i. $v")
+            }
+
+            runOnUiThread {
+                binding.tvMediaStreamCallback.text = streamIdSB.toString()
+            }
         }
     }
 
@@ -89,13 +115,18 @@ class SfuActivity : AppCompatActivity() {
             rtcManager.switchCamera()
         }
 
+        rtcManager.toggleAudio(false)
+
         binding.ivMute.setOnClickListener {
-//            rtcManager.toggleAudio()
+            rtcManager.toggleAudio(true)
         }
 
         observer(viewModel.participantListState) {
             roomAdapter.submitList(it)
         }
+
+        binding.svrLocal.initializeSurfaceView(rtcManager.getEglBase())
+        rtcManager.startLocalVideo(binding.svrLocal)
     }
 
     override fun onDestroy() {

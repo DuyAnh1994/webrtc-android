@@ -7,12 +7,12 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cvParti"
-        android:layout_width="match_parent"
+        android:layout_width="50dp"
         android:layout_height="0dp"
-        android:layout_margin="10dp"
+        android:layout_margin="8dp"
         app:cardCornerRadius="8dp"
         app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintTop_toBottomOf="@id/tvStreamIdOrigin"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <org.webrtc.SurfaceViewRenderer
@@ -20,53 +20,68 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+    </com.google.android.material.card.MaterialCardView>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/llInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/cvParti"
+        app:layout_constraintTop_toTopOf="@id/cvParti">
+
         <TextView
             android:id="@+id/tvName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:textColor="@color/white"
-            android:textSize="12sp"
-            tools:text="user_name" />
+            android:textColor="@color/black"
+            android:textSize="10sp"
+            tools:text="name: user_name" />
 
         <TextView
             android:id="@+id/tvMediaStreamInstance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:padding="8dp"
-            android:textColor="@color/white"
-            android:textSize="12sp"
+            android:textColor="@color/black"
+            android:textSize="10sp"
             android:textStyle="italic"
-            tools:text="user_name" />
+            tools:text="stream instance: @12321d21" />
 
-    </com.google.android.material.card.MaterialCardView>
+        <TextView
+            android:id="@+id/tvStreamIdOrigin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/black"
+            android:textSize="10sp"
+            app:layout_constraintBottom_toTopOf="@id/tvStreamIdSecondary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cvParti"
+            tools:text="origin: eb80bac5-561f-42b4-940d-dd7d2b058799" />
 
-    <TextView
-        android:id="@+id/tvStreamIdOrigin"
+        <TextView
+            android:id="@+id/tvStreamIdSecondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="10sp"
+            android:textStyle="italic"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="streamdId: \n0. eb80bac5-561f-42b4-940d-dd7d2b058799\n1. eb80bac5-561f-42b4-940d-dd7d2b058799\n2. eb80bac5-561f-42b4-940d-dd7d2b058799\n3. eb80bac5-561f-42b4-940d-dd7d2b058799" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="10dp"
+        android:layout_height="1dp"
+        android:layout_marginHorizontal="12dp"
         android:layout_marginTop="4dp"
-        android:padding="10dp"
-        android:textColor="@color/black"
-        android:textSize="12sp"
-        app:layout_constraintBottom_toTopOf="@id/tvStreamIdSecondary"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cvParti"
-        tools:text="eb80bac5-561f-42b4-940d-dd7d2b058799" />
-
-    <TextView
-        android:id="@+id/tvStreamIdSecondary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="10dp"
-        android:padding="10dp"
-        android:textColor="@color/black"
-        android:textSize="11sp"
-        android:textStyle="italic"
+        android:background="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:text="eb80bac5-561f-42b4-940d-dd7d2b058799" />
+        app:layout_constraintTop_toBottomOf="@id/llInfo" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -65,9 +65,11 @@ class BglobalSocketClient(
     }
 
     private fun onMsgByCommand(rawData: String?, topic: String?) {
+        Log.d(TAG, "onMsgByCommand: topic= $topic ---  rawData= $rawData")
+
         when (topic) {
             SOCKET_TOPIC.UPDATE -> {
-                Log.d(TAG, "onMsgByCommand UPDATE rawData: $rawData")
+//                Log.d(TAG, "onMsgByCommand UPDATE rawData: $rawData")
                 val response = gson.fromJson(rawData, AnswerResponse::class.java)
                 commandListener.onUpdateOffer(response)
             }
@@ -76,6 +78,8 @@ class BglobalSocketClient(
 
     private fun onMsgByResponse(rawData: String?, topic: String?) {
         // cần order BE thêm topic để xử lý các case riêng
+
+        Log.d(TAG, "onMsgByResponse: topic= $topic ---  rawData= $rawData")
 
         try {
             val response = gson.fromJson(rawData, OfferResponse::class.java)
@@ -103,6 +107,8 @@ class BglobalSocketClient(
     }
 
     private fun onMsgByEvent(rawData: String?, topic: String?) {
+        Log.d(TAG, "onMsgByEvent: topic= $topic ---  rawData= $rawData")
+
         when (topic) {
             SOCKET_TOPIC.PARTICIPANTS -> {
                 val response = gson.fromJson(rawData, ParticipantResponse::class.java)
@@ -112,6 +118,8 @@ class BglobalSocketClient(
     }
 
     private fun onMsgByError(rawData: String?, topic: String?) {
+        Log.d(TAG, "onMsgByError: topic= $topic ---  rawData= $rawData")
+
         val reason = rawData ?: ""
         errorListener.onError(reason)
     }

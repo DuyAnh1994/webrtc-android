@@ -3,6 +3,7 @@ package com.anhnd.webrtc.sfu
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.anhnd.webrtc.databinding.ParticipantItemBinding
 import com.anhnd.webrtc.sfu.domain.model.Participant
@@ -10,6 +11,7 @@ import com.anhnd.webrtc.utils.initializeSurfaceView
 import com.bglobal.lib.publish.WebRTCController
 
 class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
+//class RoomAdapter : ListAdapter<Participant, RoomAdapter.ParticipantVH>(ParticipantItemCallback()) {
 
     companion object {
         private const val TAG = "RoomAdapter"
@@ -34,10 +36,18 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
         holder.onBind(currentList[holder.adapterPosition])
     }
 
-    fun submitList(list: MutableList<Participant>) {
-        currentList.clear()
-        currentList.addAll(list)
-        notifyDataSetChanged()
+//    fun submitList(list: MutableList<Participant>) {
+//        currentList.clear()
+//        currentList.addAll(list)
+//        notifyDataSetChanged()
+//    }
+
+    fun submitList(newData: MutableList<Participant>) {
+        val newList = newData.toMutableList()
+        val callback = PaymentDiffCallback(currentList, newList)
+        val diffResult = DiffUtil.calculateDiff(callback)
+        this.currentList = newList
+        diffResult.dispatchUpdatesTo(this)
     }
 
     inner class ParticipantVH(private val binding: ParticipantItemBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -49,29 +59,53 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
         }
 
         fun onBind(data: Participant) {
-            if (adapterPosition == 0) {
-                rtcManager?.startLocalVideo(binding.svrUser)
-            }
+//            if (data.isLocal) {
+//                rtcManager?.startLocalVideo(binding.svrUser)
+//            }
 
             binding.apply {
-                tvName.text = data.name
-                tvStreamIdOrigin.text = data.streamIdOrigin
+                tvName.text = String.format("name: ${data.name}")
+                tvMediaStreamInstance.text = String.format("ms ins: ${data.mediaStream}")
+                tvStreamIdOrigin.text = String.format("origin: ${data.streamIdOrigin}")
                 tvStreamIdSecondary.text = data.getStreamIdSecondary()
-                tvMediaStreamInstance.text = "${data.mediaStream}"
             }
             data.addSink(binding.svrUser)
         }
     }
 }
 
-class ParticipantDiffCallback() : DiffUtil.ItemCallback<Participant>() {
+class ParticipantItemCallback : DiffUtil.ItemCallback<Participant>() {
 
     override fun areItemsTheSame(oldItem: Participant, newItem: Participant): Boolean {
-        return oldItem.name == newItem.name
+        return oldItem.id == newItem.id
 
     }
 
     override fun areContentsTheSame(oldItem: Participant, newItem: Participant): Boolean {
         return oldItem.name == newItem.name
     }
+}
+
+class PaymentDiffCallback(
+    private val oldData: List<Participant>,
+    private val newData: List<Participant>
+) : DiffUtil.Callback() {
+
+    override fun getOldListSize() = oldData.count()
+
+    override fun getNewListSize() = newData.count()
+
+    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+
+        return getOldItem(oldItemPosition).id == getNewItem(newItemPosition).id
+    }
+
+    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+
+        return getOldItem(oldItemPosition).name == getNewItem(newItemPosition).name
+    }
+
+    private fun getOldItem(position: Int) = oldData[position]
+
+    private fun getNewItem(position: Int) = newData[position]
 }

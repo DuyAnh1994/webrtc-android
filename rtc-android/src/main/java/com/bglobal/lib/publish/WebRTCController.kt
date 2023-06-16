@@ -18,10 +18,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.webrtc.CameraVideoCapturer
+import org.webrtc.DataChannel
 import org.webrtc.EglBase
 import org.webrtc.IceCandidate
 import org.webrtc.MediaStream
 import org.webrtc.MediaStreamTrack
+import org.webrtc.PeerConnection
 import org.webrtc.RtpReceiver
 import org.webrtc.RtpTransceiver
 import org.webrtc.SessionDescription
@@ -219,19 +221,37 @@ class WebRTCController(private val application: Application) {
     }
 
 //    private val peerConnectionObserverImpl = object : PeerConnection.Observer {
-//        override fun onSignalingChange(p0: PeerConnection.SignalingState?) {}
-//        override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {}
-//        override fun onIceConnectionReceivingChange(p0: Boolean) {}
-//        override fun onIceGatheringChange(p0: PeerConnection.IceGatheringState?) {}
+//        override fun onSignalingChange(p0: PeerConnection.SignalingState?) {
+//            Log.d(TAG, "onSignalingChange() called with: p0 = $p0")
+//        }
+//        override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {
+//            Log.d(TAG, "onIceConnectionChange() called with: p0 = $p0")
+//        }
+//        override fun onIceConnectionReceivingChange(p0: Boolean) {
+//            Log.d(TAG, "onIceConnectionReceivingChange() called with: p0 = $p0")
+//        }
+//        override fun onIceGatheringChange(p0: PeerConnection.IceGatheringState?) {
+//            Log.d(TAG, "onIceGatheringChange() called with: p0 = $p0")
+//        }
 //        override fun onIceCandidate(p0: IceCandidate?) {
 //            rtcClient?.addIceCandidate(p0)
 //        }
 //
-//        override fun onIceCandidatesRemoved(p0: Array<out IceCandidate>?) {}
-//        override fun onAddStream(p0: MediaStream?) {}
-//        override fun onRemoveStream(p0: MediaStream?) {}
-//        override fun onDataChannel(p0: DataChannel?) {}
-//        override fun onRenegotiationNeeded() {}
+//        override fun onIceCandidatesRemoved(p0: Array<out IceCandidate>?) {
+//            Log.d(TAG, "onIceCandidatesRemoved() called with: p0 = $p0")
+//        }
+//        override fun onAddStream(p0: MediaStream?) {
+//            Log.d(TAG, "onAddStream() called with: p0 = $p0")
+//        }
+//        override fun onRemoveStream(p0: MediaStream?) {
+//            Log.d(TAG, "onRemoveStream() called with: p0 = $p0")
+//        }
+//        override fun onDataChannel(p0: DataChannel?) {
+//            Log.d(TAG, "onDataChannel() called with: p0 = $p0")
+//        }
+//        override fun onRenegotiationNeeded() {
+//            Log.d(TAG, "onRenegotiationNeeded() called")
+//        }
 //        override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {
 //            Log.d(TAG, "\n\n onAddTrack =================================")
 //            p1?.forEach {
@@ -241,10 +261,6 @@ class WebRTCController(private val application: Application) {
 //    }
 
     private val peerConnectionObserverImpl = object : PeerConnectionObserverImpl() {
-        override fun onIceCandidate(iceCandidate: IceCandidate?) {
-            rtcClient?.addIceCandidate(iceCandidate)
-        }
-
         override fun onTrack(transceiver: RtpTransceiver?) {
 //            transceiver?.sender?.streams?.forEach {
 //                Log.d(TAG, "onTrack ccccccc: $it")
@@ -256,7 +272,7 @@ class WebRTCController(private val application: Application) {
 
 //            Log.d(TAG, "onAddTrack: rtpReceiver_id: ${rtpReceiver?.id()}")
 
-            val track : MediaStreamTrack = rtpReceiver?.track() ?: return
+            val track: MediaStreamTrack = rtpReceiver?.track() ?: return
             Log.d(TAG, "onAddTrack: id=${track.id()} kind=${track.id()}")
 
 
@@ -333,7 +349,7 @@ class WebRTCController(private val application: Application) {
             Log.d(TAG, "\nonPeer: $dtoList")
 
             participantRTCList.replace(dtoList)
-//            rtcListener?.onUserListInRoom(participantRTCList)
+            rtcListener?.onUserListInRoom(participantRTCList)
         }
     }
 
