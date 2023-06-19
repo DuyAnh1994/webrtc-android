@@ -12,7 +12,7 @@ class HandleModel {
 
     private val gson = GsonBuilder().disableHtmlEscaping().create()
 
-    fun createOffer(name: String?, sdp: String): OfferRequest {
+    fun createOffer(name: String?, transId: Int = 0, sdp: String): OfferRequest {
         val dataDto = DataDTO(
             name = name,
             sdp = sdp
@@ -23,11 +23,11 @@ class HandleModel {
         ).apply {
             this.type = SOCKET_TYPE.COMMAND
             this.name = SOCKET_TOPIC.JOIN
-            this.transId = 0
+            this.transId = transId
         }
     }
 
-    fun updateSdp(sdp: String?): AnswerRequest {
+    fun updateSdp(transId: Int= 0, sdp: String?): AnswerRequest {
         if (sdp == null) {
             throw RtcException("sdp must not null")
         }
@@ -38,7 +38,7 @@ class HandleModel {
             dataDto = dataDtoRequest
         ).apply {
             this.type = SOCKET_TYPE.RESPONSE
-            this.transId = 0
+            this.transId = transId
         }
     }
 

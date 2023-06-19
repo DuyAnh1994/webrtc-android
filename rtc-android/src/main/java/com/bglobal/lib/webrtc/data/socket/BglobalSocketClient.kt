@@ -128,7 +128,7 @@ class BglobalSocketClient(
         try {
             val json = gson.toJson(rtcDto)
 //            Log.d(TAG, "send json : type=${rtcDto.type} name=${rtcDto.name} transId=${rtcDto.transId}")
-            Log.d(TAG, "\n\nemit:   extra=[$extra]   json=$json")
+            Log.d(TAG, "\n\nemit:   extra=[$extra]  ${rtcDto.transId}  json=$json")
             webSocket?.send(json)
         } catch (e: Exception) {
             e.printStackTrace()

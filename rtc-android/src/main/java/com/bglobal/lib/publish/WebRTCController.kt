@@ -18,12 +18,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.webrtc.CameraVideoCapturer
-import org.webrtc.DataChannel
 import org.webrtc.EglBase
 import org.webrtc.IceCandidate
 import org.webrtc.MediaStream
 import org.webrtc.MediaStreamTrack
-import org.webrtc.PeerConnection
 import org.webrtc.RtpReceiver
 import org.webrtc.RtpTransceiver
 import org.webrtc.SessionDescription
@@ -43,6 +41,8 @@ class WebRTCController(private val application: Application) {
     private var myUser: ParticipantRTC? = null
     private var username = ""
     private val participantRTCList = mutableListOf<ParticipantRTC>()
+    private var sdpUpdate: String? = ""
+    private var transId = 0
 
     //    private val mediaStreamList = mutableListOf<MediaStream>()
     private var isOnAddTrackRunning = false
@@ -98,7 +98,7 @@ class WebRTCController(private val application: Application) {
         rtcClient?.setRemoteSdpByAnswer(session)
     }
 
-    private fun updateOffer(sdp: String?) {
+    fun updateOffer(sdp: String?) {
 //        Log.d(TAG, "updateOffer  sdp  : $sdp")
         /*
          * chú ý: phải sử dụng sdp mà server trả về với type=cmd - name=update thì mới stream lên server được
@@ -111,8 +111,9 @@ class WebRTCController(private val application: Application) {
                 * chú ý: sdp truyền lên phải là sdp sau khi create answer tù instance của peer connection
                 *
                 * */
-                val request = handleModel.updateSdp(it?.description)
+                val request = handleModel.updateSdp(transId = transId, sdp = sdp)
                 socket?.sendMessageToSocket(request, "update")
+                transId++
             }
         }
     }
@@ -272,15 +273,15 @@ class WebRTCController(private val application: Application) {
 
 //            Log.d(TAG, "onAddTrack: rtpReceiver_id: ${rtpReceiver?.id()}")
 
-            val track: MediaStreamTrack = rtpReceiver?.track() ?: return
-            Log.d(TAG, "onAddTrack: id=${track.id()} kind=${track.id()}")
+//            val track: MediaStreamTrack = rtpReceiver?.track() ?: return
+//            Log.d(TAG, "onAddTrack: id=${track.id()} kind=${track.id()}")
 
 
 
-            Log.d(TAG, "\n\n onAddTrack =================================")
-            mediaStreamList?.forEach {
-                Log.d(TAG, "id=[$it]")
-            }
+//            Log.d(TAG, "\n\n onAddTrack =================================")
+//            mediaStreamList?.forEach {
+//                Log.d(TAG, "id=[$it]")
+//            }
 
 //            isOnAddTrackRunning = true
 //            peer()
@@ -300,17 +301,20 @@ class WebRTCController(private val application: Application) {
         }
 
         override fun onAddStream(mediaStream: MediaStream?) {
-//            Log.d(TAG, "\n\nonAddStream: ${mediaStream?.id}")
-            rtcListener?.onAddStream(mediaStream)
+            Log.d(TAG, "\n\nonAddStream: ${mediaStream?.id}")
+//            rtcListener?.onAddStream(mediaStream)
         }
 
         override fun onRemoveStream(mediaStream: MediaStream?) {
-            rtcListener?.onRemoveStream(mediaStream)
+            Log.d(TAG, "\n\nonRemoveStream: ${mediaStream?.id}")
+
+//            rtcListener?.onRemoveStream(mediaStream)
         }
     }
 
     private val commandListener = object : BglobalSocketListener.Command {
         override fun onUpdateOffer(rtcDto: AnswerResponse) {
+            sdpUpdate = rtcDto.getSdp()
             updateOffer(rtcDto.getSdp())
         }
     }
@@ -363,10 +367,10 @@ class WebRTCController(private val application: Application) {
                  */
 
                 // TODO: xử lý ở đây đang bất đồng bộ, xem xét gọi peer ở onAddStream/onAddTrack
-                if (!isOnAddTrackRunning) {
-                    val request = handleModel.getPeer(username)
-                    socket?.sendMessageToSocket(request, "peer")
-                }
+//                if (!isOnAddTrackRunning) {
+                val request = handleModel.getPeer(username)
+                socket?.sendMessageToSocket(request, "peer")
+//                }
             }
         }
     }

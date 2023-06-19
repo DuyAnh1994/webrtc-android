@@ -118,7 +118,9 @@ class SfuActivity : AppCompatActivity() {
         rtcManager.toggleAudio(false)
 
         binding.ivMute.setOnClickListener {
-            rtcManager.toggleAudio(true)
+//            rtcManager.toggleAudio(true)
+
+//            rtcManager.updateOffer()
         }
 
         observer(viewModel.participantListState) {
