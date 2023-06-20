@@ -5,7 +5,7 @@ import org.webrtc.MediaStream
 data class ParticipantRTC(
     var id: Int,
     var name: String,
-    var streamIdOrigin: String,
-    var streamIdSecondary: MutableList<String>,
+    var streamId: String,
+    var subIdList: MutableList<String>,
     var mediaStream: MediaStream? = null
 )

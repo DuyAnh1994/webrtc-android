@@ -29,14 +29,14 @@ class SfuActivity : AppCompatActivity() {
         override fun onUserListInRoom(totalList: List<ParticipantRTC>) {
             Log.d(TAG, "\n\n onUserListInRoom   total = ${totalList.count()} ----------------------------------------------")
             totalList.forEach {
-                Log.d(TAG, "onUserListInRoom: id=${it.id} name=${it.name} streamId=${it.streamIdOrigin} ms=${it.mediaStream}")
+                Log.d(TAG, "onUserListInRoom: id=${it.id} name=${it.name} streamId=${it.streamId} ms=${it.mediaStream}")
             }
 
             viewModel.replaceParticipantList(totalList)
         }
 
         override fun onUserJoinRoom(userJoin: ParticipantRTC) {
-            Log.d(TAG, "onUserJoinRoom: name=[${userJoin.name}]   streamId=[${userJoin.streamIdOrigin}]")
+            Log.d(TAG, "onUserJoinRoom: name=[${userJoin.name}]   streamId=[${userJoin.streamId}]")
 //            viewModel.userJoinRoom(userJoin)
         }
 

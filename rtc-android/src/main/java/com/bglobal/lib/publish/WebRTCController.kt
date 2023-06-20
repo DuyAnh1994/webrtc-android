@@ -19,9 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.webrtc.CameraVideoCapturer
 import org.webrtc.EglBase
-import org.webrtc.IceCandidate
 import org.webrtc.MediaStream
-import org.webrtc.MediaStreamTrack
 import org.webrtc.RtpReceiver
 import org.webrtc.RtpTransceiver
 import org.webrtc.SessionDescription
@@ -70,8 +68,8 @@ class WebRTCController(private val application: Application) {
         myUser = ParticipantRTC(
             id = 0,
             name = username,
-            streamIdOrigin = "",
-            streamIdSecondary = mutableListOf()
+            streamId = "",
+            subIdList = mutableListOf()
         )
         myUser?.let {
             participantRTCList.add(0, it)
@@ -191,7 +189,7 @@ class WebRTCController(private val application: Application) {
             if (item == null) {
                 val parti = ParticipantDTO(
                     name = v,
-                    streamIdOrigin = k
+                    streamId = k
                 )
                 list.add(parti)
             }

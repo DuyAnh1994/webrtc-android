@@ -40,8 +40,8 @@ class SfuViewModel : ViewModel() {
             Participant(
                 id = it.id,
                 name = it.name,
-                streamIdOrigin = it.streamIdOrigin,
-                streamIdSecondary = it.streamIdSecondary,
+                streamIdOrigin = it.streamId,
+                streamIdSecondary = it.subIdList,
                 mediaStream = it.mediaStream
             )
         }
@@ -54,8 +54,8 @@ class SfuViewModel : ViewModel() {
             val item = Participant(
                 id = user.id,
                 name = user.name,
-                streamIdOrigin = user.streamIdOrigin,
-                streamIdSecondary = user.streamIdSecondary
+                streamIdOrigin = user.streamId,
+                streamIdSecondary = user.subIdList
             )
             participantList.add(item)
             _participantListState.postSelf()

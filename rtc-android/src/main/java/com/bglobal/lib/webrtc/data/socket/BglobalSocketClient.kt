@@ -95,7 +95,7 @@ class BglobalSocketClient(
             map?.forEach { (k, v)->
                 participantDTOList.forEach {
                     if (v == it.name) {
-                        it.streamIdSecondary.add(k)
+                        it.subIdList.add(k)
                     }
                 }
             }

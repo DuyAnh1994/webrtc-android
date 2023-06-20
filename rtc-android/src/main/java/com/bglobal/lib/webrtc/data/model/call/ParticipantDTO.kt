@@ -8,14 +8,14 @@ data class ParticipantDTO(
 
     @SerializedName("name") var name: String? = null,
 
-    @SerializedName("streamId") var streamIdOrigin: String? = null,
+    @SerializedName("streamId") var streamId: String? = null,
 
-    var streamIdSecondary: MutableList<String> = mutableListOf()
+    var subIdList: MutableList<String> = mutableListOf()
 )
 
 fun ParticipantDTO.toParticipantRTC() = ParticipantRTC(
     id = this.id ?: 0,
     name = this.name ?: "",
-    streamIdOrigin = streamIdOrigin ?: "",
-    streamIdSecondary = streamIdSecondary
+    streamId = streamId ?: "",
+    subIdList = subIdList
 )
