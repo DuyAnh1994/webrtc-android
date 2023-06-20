@@ -41,8 +41,6 @@ class WebRTCController(private val application: Application) {
     private var myUser: ParticipantRTC? = null
     private var username = ""
     private val participantRTCList = mutableListOf<ParticipantRTC>()
-    private var sdpUpdate: String? = ""
-    private var transId = 0
 
     //    private val mediaStreamList = mutableListOf<MediaStream>()
     private var isOnAddTrackRunning = false
@@ -98,12 +96,12 @@ class WebRTCController(private val application: Application) {
         rtcClient?.setRemoteSdpByAnswer(session)
     }
 
-    fun updateOffer(sdp: String?) {
+    fun updateOffer(rtcDto: AnswerResponse) {
 //        Log.d(TAG, "updateOffer  sdp  : $sdp")
         /*
          * chú ý: phải sử dụng sdp mà server trả về với type=cmd - name=update thì mới stream lên server được
          */
-        val offer = SessionDescription(SessionDescription.Type.OFFER, sdp)
+        val offer = SessionDescription(SessionDescription.Type.OFFER, rtcDto.getSdp())
         rtcClient?.setRemoteSdpByOffer(offer)
         rtcClient?.createAnswer {
             CoroutineScope(Dispatchers.IO).launch {
@@ -111,9 +109,8 @@ class WebRTCController(private val application: Application) {
                 * chú ý: sdp truyền lên phải là sdp sau khi create answer tù instance của peer connection
                 *
                 * */
-                val request = handleModel.updateSdp(transId = transId, sdp = sdp)
+                val request = handleModel.updateSdp(transId = rtcDto.getTransId(), sdp = rtcDto.getSdp())
                 socket?.sendMessageToSocket(request, "update")
-                transId++
             }
         }
     }
@@ -221,46 +218,6 @@ class WebRTCController(private val application: Application) {
         }
     }
 
-//    private val peerConnectionObserverImpl = object : PeerConnection.Observer {
-//        override fun onSignalingChange(p0: PeerConnection.SignalingState?) {
-//            Log.d(TAG, "onSignalingChange() called with: p0 = $p0")
-//        }
-//        override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {
-//            Log.d(TAG, "onIceConnectionChange() called with: p0 = $p0")
-//        }
-//        override fun onIceConnectionReceivingChange(p0: Boolean) {
-//            Log.d(TAG, "onIceConnectionReceivingChange() called with: p0 = $p0")
-//        }
-//        override fun onIceGatheringChange(p0: PeerConnection.IceGatheringState?) {
-//            Log.d(TAG, "onIceGatheringChange() called with: p0 = $p0")
-//        }
-//        override fun onIceCandidate(p0: IceCandidate?) {
-//            rtcClient?.addIceCandidate(p0)
-//        }
-//
-//        override fun onIceCandidatesRemoved(p0: Array<out IceCandidate>?) {
-//            Log.d(TAG, "onIceCandidatesRemoved() called with: p0 = $p0")
-//        }
-//        override fun onAddStream(p0: MediaStream?) {
-//            Log.d(TAG, "onAddStream() called with: p0 = $p0")
-//        }
-//        override fun onRemoveStream(p0: MediaStream?) {
-//            Log.d(TAG, "onRemoveStream() called with: p0 = $p0")
-//        }
-//        override fun onDataChannel(p0: DataChannel?) {
-//            Log.d(TAG, "onDataChannel() called with: p0 = $p0")
-//        }
-//        override fun onRenegotiationNeeded() {
-//            Log.d(TAG, "onRenegotiationNeeded() called")
-//        }
-//        override fun onAddTrack(p0: RtpReceiver?, p1: Array<out MediaStream>?) {
-//            Log.d(TAG, "\n\n onAddTrack =================================")
-//            p1?.forEach {
-//                Log.d(TAG, "id=[$it]")
-//            }
-//        }
-//    }
-
     private val peerConnectionObserverImpl = object : PeerConnectionObserverImpl() {
         override fun onTrack(transceiver: RtpTransceiver?) {
 //            transceiver?.sender?.streams?.forEach {
@@ -301,21 +258,21 @@ class WebRTCController(private val application: Application) {
         }
 
         override fun onAddStream(mediaStream: MediaStream?) {
-            Log.d(TAG, "\n\nonAddStream: ${mediaStream?.id}")
-//            rtcListener?.onAddStream(mediaStream)
+//            Log.d(TAG, "\n\nonAddStream: ${mediaStream?.id}")
+
+            rtcListener?.onAddStream(mediaStream)
         }
 
         override fun onRemoveStream(mediaStream: MediaStream?) {
-            Log.d(TAG, "\n\nonRemoveStream: ${mediaStream?.id}")
+//            Log.d(TAG, "\n\nonRemoveStream: ${mediaStream?.id}")
 
-//            rtcListener?.onRemoveStream(mediaStream)
+            rtcListener?.onRemoveStream(mediaStream)
         }
     }
 
     private val commandListener = object : BglobalSocketListener.Command {
         override fun onUpdateOffer(rtcDto: AnswerResponse) {
-            sdpUpdate = rtcDto.getSdp()
-            updateOffer(rtcDto.getSdp())
+            updateOffer(rtcDto)
         }
     }
 

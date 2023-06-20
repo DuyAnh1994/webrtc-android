@@ -11,4 +11,8 @@ data class AnswerResponse(
     fun getSdp(): String? {
         return dataDto?.sdp
     }
+
+    fun getTransId(): Int {
+        return transId ?: 0
+    }
 }

@@ -22,12 +22,12 @@ class HandleModel {
             dataDto = dataDto
         ).apply {
             this.type = SOCKET_TYPE.COMMAND
-            this.name = SOCKET_TOPIC.JOIN
+            this.topic = SOCKET_TOPIC.JOIN
             this.transId = transId
         }
     }
 
-    fun updateSdp(transId: Int= 0, sdp: String?): AnswerRequest {
+    fun updateSdp(transId: Int = 0, sdp: String?): AnswerRequest {
         if (sdp == null) {
             throw RtcException("sdp must not null")
         }
@@ -47,7 +47,7 @@ class HandleModel {
 
         return PeerRequest(dataDto = dataDto).apply {
             this.type = SOCKET_TYPE.COMMAND
-            this.name = SOCKET_TOPIC.PEER
+            this.topic = SOCKET_TOPIC.PEER
             this.transId = transId
         }
     }
