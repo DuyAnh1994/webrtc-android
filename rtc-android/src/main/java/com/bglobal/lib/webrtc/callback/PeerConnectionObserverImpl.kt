@@ -15,8 +15,8 @@ open class PeerConnectionObserverImpl : PeerConnection.Observer {
     override fun onIceGatheringChange(iceGatheringState: PeerConnection.IceGatheringState?) {}
     override fun onIceCandidate(iceCandidate: IceCandidate?) {}
     override fun onIceCandidatesRemoved(iceCandidateList: Array<out IceCandidate>?) {}
-    override fun onAddStream(mediaStream: MediaStream?) {}
-    override fun onRemoveStream(mediaStream: MediaStream?) {}
+    override fun onAddStream(track: MediaStream?) {}
+    override fun onRemoveStream(track: MediaStream?) {}
     override fun onDataChannel(dataChannel: DataChannel?) {}
     override fun onRenegotiationNeeded() {}
     override fun onAddTrack(rtpReceiver: RtpReceiver?, mediaStreamList: Array<out MediaStream>?) {}

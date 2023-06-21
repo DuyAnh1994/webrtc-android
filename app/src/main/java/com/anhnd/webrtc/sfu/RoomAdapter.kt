@@ -3,8 +3,8 @@ package com.anhnd.webrtc.sfu
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.anhnd.webrtc.databinding.ParticipantGridItemBinding
 import com.anhnd.webrtc.databinding.ParticipantItemBinding
 import com.anhnd.webrtc.sfu.domain.model.Participant
 import com.anhnd.webrtc.utils.initializeSurfaceView
@@ -22,7 +22,8 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
     private var currentList = mutableListOf<Participant>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticipantVH {
-        val binding = ParticipantItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+//        val binding = ParticipantItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ParticipantGridItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ParticipantVH(binding)
     }
 
@@ -50,7 +51,8 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
         diffResult.dispatchUpdatesTo(this)
     }
 
-    inner class ParticipantVH(private val binding: ParticipantItemBinding) : RecyclerView.ViewHolder(binding.root) {
+//    inner class ParticipantVH(private val binding: ParticipantItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ParticipantVH(private val binding: ParticipantGridItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
         init {
             rtcManager?.getEglBase()?.let {
@@ -59,15 +61,15 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
         }
 
         fun onBind(data: Participant) {
-//            if (data.isLocal) {
-//                rtcManager?.startLocalVideo(binding.svrUser)
-//            }
+            if (data.isLocal) {
+                rtcManager?.startLocalVideo(binding.svrUser)
+            }
 
             binding.apply {
                 tvName.text = String.format("name: ${data.name}")
-                tvMediaStreamInstance.text = String.format("ms ins: ${data.mediaStream}")
-                tvStreamIdOrigin.text = String.format("origin: ${data.streamIdOrigin}")
-                tvStreamIdSecondary.text = data.getStreamIdSecondary()
+//                tvMediaStreamInstance.text = String.format("ms ins: ${data.mediaStream}")
+//                tvStreamId.text = String.format("streamId: ${data.streamId}")
+//                tvSubIdList.text = data.getStreamIdSecondary()
             }
             data.addSink(binding.svrUser)
         }

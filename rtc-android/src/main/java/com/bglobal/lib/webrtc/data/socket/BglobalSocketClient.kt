@@ -2,6 +2,7 @@ package com.bglobal.lib.webrtc.data.socket
 
 import android.util.Log
 import com.bglobal.lib.utils.TAG
+import com.bglobal.lib.utils.TAG_SOCKET
 import com.bglobal.lib.webrtc.data.model.base.RtcBaseRequest
 import com.bglobal.lib.webrtc.data.model.base.RtcBaseResponse
 import com.bglobal.lib.webrtc.data.model.call.ParticipantDTO
@@ -23,7 +24,7 @@ class BglobalSocketClient(
 ) {
 
     companion object {
-        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=4"
+        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=5"
     }
 
     private var webSocket: WebSocketClient? = null
@@ -45,7 +46,7 @@ class BglobalSocketClient(
                 val baseResponse = gson.fromJson(message, RtcBaseResponse::class.java)
                 when (baseResponse.type) {
                     SOCKET_TYPE.COMMAND -> onMsgByCommand(message, baseResponse.topic)
-                    SOCKET_TYPE.RESPONSE -> onMsgByResponse(message, baseResponse.topic)
+                    SOCKET_TYPE.RESPONSE -> onMsgByResponse(message, "response")
                     SOCKET_TYPE.EVENT -> onMsgByEvent(message, baseResponse.topic)
                     SOCKET_TYPE.ERROR -> onMsgByError(message, baseResponse.topic)
                 }
@@ -64,8 +65,12 @@ class BglobalSocketClient(
         webSocket?.connect()
     }
 
+    fun close() {
+        webSocket?.close()
+    }
+
     private fun onMsgByCommand(rawData: String?, topic: String?) {
-        Log.d(TAG, "onMsgByCommand: topic= $topic ---  rawData= $rawData")
+        Log.d(TAG_SOCKET, "on:\t\ttopic=[$topic] ---  rawData= $rawData")
 
         when (topic) {
             SOCKET_TOPIC.UPDATE -> {
@@ -79,7 +84,7 @@ class BglobalSocketClient(
     private fun onMsgByResponse(rawData: String?, topic: String?) {
         // cần order BE thêm topic để xử lý các case riêng
 
-        Log.d(TAG, "onMsgByResponse: topic= $topic ---  rawData= $rawData")
+        Log.d(TAG_SOCKET, "on:\t\ttopic=[$topic] ---  rawData= $rawData")
 
         try {
             val response = gson.fromJson(rawData, OfferResponse::class.java)
@@ -90,7 +95,7 @@ class BglobalSocketClient(
             Log.d(TAG, "onMsgByResponse models: ${peerBridgeDTO.models}")
             val participantDTOList = gson.fromJson(peerBridgeDTO.models, Array<ParticipantDTO>::class.java).toList()
 
-            val map: HashMap<String, String>? = gson.fromJson(peerBridgeDTO.map, HashMap::class.java) as? HashMap<String, String>
+            val map = gson.fromJson(peerBridgeDTO.map, HashMap::class.java) as? HashMap<String, String>
 
             map?.forEach { (k, v)->
                 participantDTOList.forEach {
@@ -107,7 +112,7 @@ class BglobalSocketClient(
     }
 
     private fun onMsgByEvent(rawData: String?, topic: String?) {
-        Log.d(TAG, "onMsgByEvent: topic= $topic ---  rawData= $rawData")
+        Log.d(TAG_SOCKET, "on:\t\ttopic=[$topic] ---  rawData= $rawData")
 
         when (topic) {
             SOCKET_TOPIC.PARTICIPANTS -> {
@@ -118,7 +123,7 @@ class BglobalSocketClient(
     }
 
     private fun onMsgByError(rawData: String?, topic: String?) {
-        Log.d(TAG, "onMsgByError: topic= $topic ---  rawData= $rawData")
+        Log.d(TAG_SOCKET, "on:\t\ttopic=[$topic] ---  rawData= $rawData")
 
         val reason = rawData ?: ""
         errorListener.onError(reason)
@@ -128,7 +133,7 @@ class BglobalSocketClient(
         try {
             val json = gson.toJson(rtcDto)
 //            Log.d(TAG, "send json : type=${rtcDto.type} name=${rtcDto.name} transId=${rtcDto.transId}")
-            Log.d(TAG, "\n\nemit:   extra=[$extra]  ${rtcDto.transId}  json=$json")
+            Log.d(TAG_SOCKET, "\n\nemit:\textra=[$extra]  transId=[${rtcDto.transId}]  json=$json")
             webSocket?.send(json)
         } catch (e: Exception) {
             e.printStackTrace()

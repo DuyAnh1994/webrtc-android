@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
 import com.anhnd.webrtc.databinding.SfuActivityBinding
 import com.anhnd.webrtc.utils.initializeSurfaceView
 import com.anhnd.webrtc.utils.observer
@@ -22,7 +23,6 @@ class SfuActivity : AppCompatActivity() {
     private val viewModel by viewModels<SfuViewModel>()
     private val roomAdapter by lazy { RoomAdapter() }
     private val streamIdList = mutableListOf<String?>()
-//    private val streamIdSB = StringBuilder("onAddTrack:\n")
 
     private val rtcManager by lazy { WebRTCController(application) }
     private val rtcListener = object : BglobalRtcListener {
@@ -35,56 +35,35 @@ class SfuActivity : AppCompatActivity() {
             viewModel.replaceParticipantList(totalList)
         }
 
-        override fun onUserJoinRoom(userJoin: ParticipantRTC) {
-            Log.d(TAG, "onUserJoinRoom: name=[${userJoin.name}]   streamId=[${userJoin.streamId}]")
-//            viewModel.userJoinRoom(userJoin)
-        }
-
-        override fun onUserLeaveRoom(userLeave: ParticipantRTC) {
-//            viewModel.userLeaveRoom(userLeave)
-        }
-
-
-        override fun onAddStream(mediaStream: MediaStream?) {
-//            Log.d(TAG, "onAddStream: ${mediaStream?.id}")
-
-//            rtcManager.peer()
-//            if (!viewModel.isSameStreamDisplay(mediaStream)) {
-//                viewModel.updateMediaStream(mediaStream)
-//            } else {
-//            viewModel.addMediaStream(mediaStream)
+//        override fun onAddStream(track: MediaStream?) {
+//            streamIdList.add(track?.id)
+//
+//            val streamIdSB = StringBuilder("onAddTrack:\n")
+//
+//            streamIdList.forEachIndexed { i, v ->
+//                streamIdSB.append("\n $i. $v")
 //            }
-
-//            viewModel.addMediaStream(mediaStream)
-
-            streamIdList.add(mediaStream?.id)
-
-            val streamIdSB = StringBuilder("onAddTrack:\n")
-
-            streamIdList.forEachIndexed { i, v ->
-                streamIdSB.append("\n $i. $v")
-            }
-
-            runOnUiThread {
-                binding.tvMediaStreamCallback.text = streamIdSB.toString()
-            }
-        }
-
-        override fun onRemoveStream(mediaStream: MediaStream?) {
-//            viewModel.removeMediaStream(mediaStream)
-
-            streamIdList.remove(mediaStream?.id)
-
-            val streamIdSB = StringBuilder("onAddTrack:\n")
-
-            streamIdList.forEachIndexed { i, v ->
-                streamIdSB.append("\n $i. $v")
-            }
-
-            runOnUiThread {
-                binding.tvMediaStreamCallback.text = streamIdSB.toString()
-            }
-        }
+//
+//            runOnUiThread {
+//                binding.tvMediaStreamCallback.text = streamIdSB.toString()
+//            }
+//        }
+//
+//        override fun onRemoveStream(track: MediaStream?) {
+////            viewModel.removeMediaStream(mediaStream)
+//
+//            streamIdList.remove(track?.id)
+//
+//            val streamIdSB = StringBuilder("onAddTrack:\n")
+//
+//            streamIdList.forEachIndexed { i, v ->
+//                streamIdSB.append("\n $i. $v")
+//            }
+//
+//            runOnUiThread {
+//                binding.tvMediaStreamCallback.text = streamIdSB.toString()
+//            }
+//        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,6 +77,7 @@ class SfuActivity : AppCompatActivity() {
         roomAdapter.rtcManager = rtcManager
 
         binding.rvRoom.apply {
+            layoutManager = GridLayoutManager(this@SfuActivity, 4)
             adapter = roomAdapter
         }
 
@@ -108,7 +88,8 @@ class SfuActivity : AppCompatActivity() {
         }
 
         binding.endCallButton.setOnClickListener {
-            viewModel.check()
+            rtcManager.endCall()
+            finish()
         }
 
         binding.btnSwitchCamera.setOnClickListener {
@@ -125,6 +106,7 @@ class SfuActivity : AppCompatActivity() {
 
         observer(viewModel.participantListState) {
             roomAdapter.submitList(it)
+            roomAdapter.notifyDataSetChanged()
         }
 
         binding.svrLocal.initializeSurfaceView(rtcManager.getEglBase())
@@ -137,13 +119,6 @@ class SfuActivity : AppCompatActivity() {
     }
 
     private fun doCall() {
-        rtcManager.startCall(getRandomString())
-    }
-
-    private fun getRandomString(): String {
-        val allowedChars = ('a'..'z')
-        return (1..3)
-            .map { allowedChars.random() }
-            .joinToString("")
+        rtcManager.startCall(viewModel.localName)
     }
 }

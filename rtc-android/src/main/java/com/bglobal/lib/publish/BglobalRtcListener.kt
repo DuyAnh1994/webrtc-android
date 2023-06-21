@@ -4,12 +4,12 @@ import org.webrtc.MediaStream
 
 interface BglobalRtcListener {
     fun onUserListInRoom(totalList: List<ParticipantRTC>)
-    fun onUserJoinRoom(userJoin: ParticipantRTC)
-    fun onUserLeaveRoom(userLeave: ParticipantRTC) {}
+    fun onUserJoinRoom(user: ParticipantRTC) {}
+    fun onUserLeaveRoom(user: ParticipantRTC) {}
 
-    fun onAddStream(mediaStream: MediaStream?)
-    fun onRemoveStream(mediaStream: MediaStream?)
+    fun onAddStream(track: MediaStream?) {}
+    fun onRemoveStream(track: MediaStream?) {}
 
-    fun onCameraSwitchDone(frontCamera: Boolean){}
-    fun onCameraSwitchError(reason: String){}
+    fun onCameraSwitchDone(frontCamera: Boolean) {}
+    fun onCameraSwitchError(reason: String) {}
 }

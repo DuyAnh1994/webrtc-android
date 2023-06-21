@@ -1,6 +1,7 @@
 package com.bglobal.lib.webrtc
 
 import android.app.Application
+import android.os.Build
 import android.util.Log
 import com.bglobal.lib.utils.TAG
 import com.bglobal.lib.webrtc.callback.SdpObserverImpl
@@ -21,6 +22,7 @@ import org.webrtc.SurfaceTextureHelper
 import org.webrtc.SurfaceViewRenderer
 import org.webrtc.VideoSource
 import org.webrtc.VideoTrack
+import org.webrtc.audio.JavaAudioDeviceModule
 import java.util.UUID
 
 class BglobalRtcClient(
@@ -55,8 +57,6 @@ class BglobalRtcClient(
     private val constraints = MediaConstraints().apply {
         mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
         mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
-//        optional.add(MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"))
-//        mandatory.add(MediaConstraints.KeyValuePair("RtpDataChannels", "true"))
     }
     private var localVideoCapture: CameraVideoCapturer? = null
     private var localAudioTrack: AudioTrack? = null
@@ -85,10 +85,10 @@ class BglobalRtcClient(
             }
         }
 
-        val constraints = MediaConstraints().apply {
-            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
-            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
-        }
+//        val constraints = MediaConstraints().apply {
+//            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
+//            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
+//        }
 
         peerConnection?.createOffer(sdpObserverByCreate, constraints)
     }
@@ -140,10 +140,10 @@ class BglobalRtcClient(
             }
         }
 
-        val constraints = MediaConstraints().apply {
-            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
-            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
-        }
+//        val constraints = MediaConstraints().apply {
+//            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
+//            mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
+//        }
 
         peerConnection?.createAnswer(sdpObserver, constraints)
     }
@@ -203,13 +203,6 @@ class BglobalRtcClient(
         }
     }
 
-    private fun getRandomString(): String {
-        val allowedChars = ('a'..'z')
-        return (1..3)
-            .map { allowedChars.random() }
-            .joinToString("")
-    }
-
     private fun getCameraVideoCapture(): CameraVideoCapturer {
         return Camera2Enumerator(application).run {
             deviceNames.find { isFrontFacing(it) }?.let {
@@ -252,19 +245,19 @@ class BglobalRtcClient(
             .setVideoEncoderFactory(encoderFactory)
             .setVideoDecoderFactory(decoderFactory)
             .setOptions(option)
-//            .setAudioDeviceModule(JavaAudioDeviceModule.builder(application)
-//                .setUseHardwareAcousticEchoCanceler(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-//                .setUseHardwareNoiseSuppressor(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-//
-////                .setAudioRecordErrorCallback()
-////                .setAudioTrackErrorCallback()
-////                .setAudioRecordStateCallback()
-////                .setAudioTrackStateCallback()
-//
-//                .createAudioDeviceModule().also {
-//                    it.setMicrophoneMute(false)
-//                    it.setSpeakerMute(false)
-//                })
+            .setAudioDeviceModule(JavaAudioDeviceModule.builder(application)
+                .setUseHardwareAcousticEchoCanceler(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                .setUseHardwareNoiseSuppressor(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+
+//                .setAudioRecordErrorCallback()
+//                .setAudioTrackErrorCallback()
+//                .setAudioRecordStateCallback()
+//                .setAudioTrackStateCallback()
+
+                .createAudioDeviceModule().also {
+                    it.setMicrophoneMute(false)
+                    it.setSpeakerMute(false)
+                })
 
         return builder.createPeerConnectionFactory()
     }
@@ -278,10 +271,11 @@ class BglobalRtcClient(
         }
 
         return peerFactory.createPeerConnection(rtcConfiguration, observer)
-//        return peerFactory.createPeerConnection(iceServer, observer)
     }
 
     fun close() {
+        localAudioTrack?.dispose()
+        localVideoTrack?.dispose()
         peerConnection?.close()
     }
 

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.anhnd.webrtc.sfu.domain.model.Participant
 import com.anhnd.webrtc.utils.asLiveData
 import com.anhnd.webrtc.utils.postSelf
+import com.anhnd.webrtc.utils.swap
 import com.bglobal.lib.publish.ParticipantRTC
 import com.bglobal.lib.utils.replace
 import kotlinx.coroutines.launch
@@ -20,15 +21,18 @@ class SfuViewModel : ViewModel() {
     private val _participantListState = MutableLiveData(participantList)
     val participantListState = _participantListState.asLiveData()
 
+    var localName = ""
+
     init {
 //        initLocalStream()
+        localName = getRandomString()
     }
 
     private fun initLocalStream() {
         val item = Participant(
             id = 0,
             name = "n/a",
-            streamIdOrigin = "n/a",
+            streamId = "n/a",
             isLocal = true
         )
         participantList.add(item)
@@ -40,11 +44,20 @@ class SfuViewModel : ViewModel() {
             Participant(
                 id = it.id,
                 name = it.name,
-                streamIdOrigin = it.streamId,
-                streamIdSecondary = it.subIdList,
-                mediaStream = it.mediaStream
+                streamId = it.streamId,
+//                subIdList = it.subIdList,
+                mediaStream = it.mediaStream,
+                isLocal = (it.name == localName)
             )
+        }.toMutableList()
+
+
+        newList.forEachIndexed { i, v ->
+            if (v.isLocal) {
+                newList.swap(0, i)
+            }
         }
+
         _participantListState.value?.replace(newList)
         _participantListState.postSelf()
     }
@@ -54,8 +67,8 @@ class SfuViewModel : ViewModel() {
             val item = Participant(
                 id = user.id,
                 name = user.name,
-                streamIdOrigin = user.streamId,
-                streamIdSecondary = user.subIdList
+                streamId = user.streamId,
+//                subIdList = user.subIdList
             )
             participantList.add(item)
             _participantListState.postSelf()
@@ -71,12 +84,12 @@ class SfuViewModel : ViewModel() {
     }
 
     fun updateMediaStream(mediaStream: MediaStream?) {
-        val index = participantList.indexOfFirst {
+//        val index = participantList.indexOfFirst {
 //            Log.d(TAG, "updateMediaStream  1: streamId=[${it.streamId}]   mediaStreamId=[${mediaStream?.id}]")
 //            it.streamIdSecondary.contains(mediaStream?.id)
 
-            containsStreamIdSecondary(it.streamIdSecondary, mediaStream?.id)
-        }
+//            containsStreamIdSecondary(it.subIdList, mediaStream?.id)
+//        }
 
 //        participantList.forEach {
 //            it.streamIdSecondary.forEach {subId->
@@ -86,9 +99,9 @@ class SfuViewModel : ViewModel() {
 
 //        Log.d(TAG, "updateMediaStream index: $index")
 
-        if (index in 0..participantList.lastIndex) {
-            participantList[index].mediaStream = mediaStream
-        }
+//        if (index in 0..participantList.lastIndex) {
+//            participantList[index].mediaStream = mediaStream
+//        }
     }
 
     private fun containsStreamIdSecondary(list: List<String>, id: String?): Boolean {
@@ -105,7 +118,7 @@ class SfuViewModel : ViewModel() {
             participantList.add(Participant(
                 id = 0,
                 name = stream?.id ?: "",
-                streamIdOrigin = stream?.id ?: "",
+                streamId = stream?.id ?: "",
                 mediaStream = stream
             ))
             _participantListState.postSelf()
@@ -115,15 +128,15 @@ class SfuViewModel : ViewModel() {
     }
 
     private fun getItemById(id: String?): Participant? {
-        return participantList.firstOrNull { it.streamIdOrigin == id }
+        return participantList.firstOrNull { it.streamId == id }
     }
 
     fun isSameStreamDisplay(mediaStream: MediaStream?): Boolean {
-        participantList.forEach {
-            if (it.streamIdSecondary.contains(mediaStream?.id)) {
-                return true
-            }
-        }
+//        participantList.forEach {
+//            if (it.subIdList.contains(mediaStream?.id)) {
+//                return true
+//            }
+//        }
         return false
     }
 
@@ -137,5 +150,12 @@ class SfuViewModel : ViewModel() {
         _participantListState.value?.forEach {
             Log.d("anhnd", "check: ${it.mediaStream?.id}")
         }
+    }
+
+    private fun getRandomString(): String {
+        val allowedChars = ('a'..'z')
+        return (1..3)
+            .map { allowedChars.random() }
+            .joinToString("")
     }
 }

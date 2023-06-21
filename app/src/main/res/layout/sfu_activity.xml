@@ -86,7 +86,7 @@
             android:focusable="true"
             android:padding="12dp"
             app:backgroundTint="@color/cardview_dark_background"
-            app:srcCompat="@drawable/ic_baseline_mic_24" />
+            app:srcCompat="@drawable/ic_accept" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/ivCheckPartiList"

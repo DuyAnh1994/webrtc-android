@@ -7,8 +7,8 @@ import org.webrtc.SurfaceViewRenderer
 data class Participant(
     var id: Int,
     var name: String,
-    var streamIdOrigin: String,
-    var streamIdSecondary: MutableList<String> = mutableListOf(),
+    var streamId: String,
+//    var subIdList: MutableList<String> = mutableListOf(),
     var mediaStream: MediaStream? = null,
     var isLoaded: Boolean = false,
     var isLocal: Boolean = false
@@ -23,10 +23,12 @@ data class Participant(
     }
 
     fun getStreamIdSecondary(): String {
-        val sb = StringBuilder("streamId: \n")
-        streamIdSecondary.forEachIndexed { i, v ->
-            sb.append("$i. ").append(v).append("\n")
-        }
+        val sb = StringBuilder("subIdList: \n")
+//        subIdList.forEachIndexed { i, v ->
+//            sb.append("$i. ").append(v).append("\n")
+//        }
         return sb.toString()
     }
+
+
 }
