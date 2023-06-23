@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.MainActivityBinding
 import com.anhnd.webrtc.p2p.P2PActivity
 import com.anhnd.webrtc.sfu.SfuActivity
+import com.anhnd.webrtc.sfu.WaitingRoomListActivity
 import com.anhnd.webrtc.utils.toast
 import com.permissionx.guolindev.PermissionX
 
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity() {
                     Manifest.permission.CAMERA
                 ).request { allGranted, _, _ ->
                     if (allGranted) {
-                        val intent = Intent(this, SfuActivity::class.java)
+                        val intent = Intent(this, WaitingRoomListActivity::class.java)
                         startActivity(intent)
                     } else {
                         Toast.makeText(this, "you should accept all permissions", Toast.LENGTH_LONG).show()

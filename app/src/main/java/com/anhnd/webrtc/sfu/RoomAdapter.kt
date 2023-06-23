@@ -71,12 +71,12 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
         }
 
         fun onBind(data: Participant) {
-//            if (data.isLocal) {
-//                rtcManager?.addLocalVideo(binding.svrUser)
-//            }
+            if (data.isLocal) {
+                rtcManager?.addLocalVideo(binding.svrUser)
+            }
 
             binding.apply {
-                tvName.text = String.format("name: ${data.name}")
+                tvName.text = String.format("--${data.name}--")
 //                tvMediaStreamInstance.text = String.format("ms ins: ${data.mediaStream}")
 //                tvStreamId.text = String.format("streamId: ${data.streamId}")
 //                tvSubIdList.text = data.getStreamIdSecondary()

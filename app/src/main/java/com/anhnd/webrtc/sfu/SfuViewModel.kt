@@ -21,6 +21,7 @@ class SfuViewModel : ViewModel() {
     private val _participantListState = MutableLiveData(participantList)
     val participantListState = _participantListState.asLiveData()
 
+    var roomId = MutableLiveData("1")
     var localName = MutableLiveData("")
 
     init {
@@ -31,6 +32,10 @@ class SfuViewModel : ViewModel() {
 
     fun getLocalName(): String {
         return localName.value ?: ""
+    }
+
+    fun getRoomId(): String {
+        return roomId.value ?: "1"
     }
 
     fun replaceParticipantList(list: List<ParticipantRTC>) {
@@ -45,6 +50,9 @@ class SfuViewModel : ViewModel() {
             )
         }.toMutableList()
 
+        for (i in 0..38) {
+            newList.add(newList.first())
+        }
 
         newList.forEachIndexed { i, v ->
             if (v.isLocal && i != 0) {

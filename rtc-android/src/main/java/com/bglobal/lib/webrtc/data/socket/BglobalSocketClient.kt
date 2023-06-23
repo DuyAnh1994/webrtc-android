@@ -17,6 +17,7 @@ import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
 
 class BglobalSocketClient(
+    private val commonListener: BglobalSocketListener.Common,
     private val commandListener: BglobalSocketListener.Command,
     private val responseListener: BglobalSocketListener.Response,
     private val eventListener: BglobalSocketListener.Event,
@@ -24,20 +25,23 @@ class BglobalSocketClient(
 ) {
 
     companion object {
-        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=4"
+        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=%s"
     }
 
     private var webSocket: WebSocketClient? = null
     private val gson = GsonBuilder().disableHtmlEscaping().create()
+    var roomId = "1"
 
     init {
-        initSocket()
+        connectSocket()
     }
 
-    private fun initSocket() {
-        webSocket = object : WebSocketClient(URI(WS_URL)) {
+    private fun connectSocket() {
+        val wsUrl = String.format(WS_URL, roomId)
+        webSocket = object : WebSocketClient(URI(wsUrl)) {
             override fun onOpen(handshakedata: ServerHandshake?) {
                 Log.d(TAG, "onOpen: connecting  httpStatus: ${handshakedata?.httpStatus}  httpMsg: ${handshakedata?.httpStatusMessage}")
+                commonListener.onOpen(wsUrl, handshakedata)
             }
 
             override fun onMessage(message: String?) {
@@ -54,11 +58,12 @@ class BglobalSocketClient(
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
                 Log.d(TAG, "onClose() called with: code = $code, reason = $reason, remote = $remote")
+                commonListener.onClose(code, reason, remote)
             }
 
             override fun onError(ex: Exception?) {
-                ex?.printStackTrace()
                 Log.d(TAG, "onError: ${ex?.message}")
+                commonListener.onError(ex)
             }
         }
 
@@ -97,7 +102,7 @@ class BglobalSocketClient(
 
             val map = gson.fromJson(peerBridgeDTO.map, HashMap::class.java) as? HashMap<String, String>
 
-            map?.forEach { (k, v)->
+            map?.forEach { (k, v) ->
                 participantDTOList.forEach {
                     if (v == it.name) {
                         it.subIdList.add(k)

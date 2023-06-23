@@ -6,6 +6,16 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tvRoomId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingVertical="4dp"
+        android:text="room 1"
+        android:textSize="30sp"
+        tools:background="@color/red" />
+
     <RelativeLayout
         android:id="@+id/callLayout"
         android:layout_width="match_parent"
@@ -46,36 +56,42 @@
             android:layout_marginEnd="8dp"
             android:layout_toStartOf="@id/svrLocal">
 
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/tvName"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="2dp"
-                android:textColor="@color/black"
-                android:textSize="10sp"
-                android:textStyle="italic"
-                tools:text="user name " />
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/tv"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="2dp"
-                android:textColor="@color/black"
-                android:textSize="10sp"
-                android:textStyle="italic"
-                tools:text="" />
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvUrlWS"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="2dp"
+                    android:textColor="@color/black"
+                    android:textSize="10sp"
+                    android:textStyle="normal"
+                    tools:text="user name " />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="2dp"
+                    android:textColor="@color/black"
+                    android:textSize="10sp"
+                    android:textStyle="normal"
+                    tools:text="user name " />
+
+            </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>
 
         <org.webrtc.SurfaceViewRenderer
             android:id="@+id/svrLocal"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="120dp"
+            android:layout_height="match_parent"
             android:layout_alignParentEnd="true" />
 
     </RelativeLayout>
-
 
     <LinearLayout
         android:id="@+id/controls"

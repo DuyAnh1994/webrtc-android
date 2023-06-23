@@ -17,6 +17,7 @@ import com.bglobal.lib.webrtc.data.socket.HandleModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.java_websocket.handshake.ServerHandshake
 import org.webrtc.CameraVideoCapturer
 import org.webrtc.EglBase
 import org.webrtc.IceCandidate
@@ -48,17 +49,21 @@ class WebRTCController(private val application: Application) {
 
     private var transIdByPeer = 0
 
+    private val mainThread = CoroutineScope(Dispatchers.Main)
+
     init {
 
     }
 
-    fun build() {
+    fun build(roomId: String) {
         socket = BglobalSocketClient(
+            commonListener = commonListener,
             commandListener = commandListener,
             responseListener = responseListener,
             eventListener = eventListener,
             errorListener = errorListener
         )
+        socket?.roomId = roomId
         rtcClient = BglobalRtcClient(
             application = this.application,
             observer = peerConnectionObserverImpl,
@@ -256,6 +261,30 @@ class WebRTCController(private val application: Application) {
     private val errorListener = object : BglobalSocketListener.Error {
         override fun onError(reason: String) {
             Log.d(TAG, "onError() called with: reason = $reason")
+        }
+    }
+
+    private val commonListener = object : BglobalSocketListener.Common {
+        override fun onOpen(url: String, handshakedata: ServerHandshake?) {
+            mainThread.launch {
+                rtcListener?.onConnect(
+                    url = url,
+                    code = handshakedata?.httpStatus?.toInt() ?: 0,
+                    msg = handshakedata?.httpStatusMessage.toString()
+                )
+            }
+        }
+
+        override fun onClose(code: Int, reason: String?, remote: Boolean) {
+            mainThread.launch {
+                rtcListener?.onDisconnect(code = code, reason = reason, remote = remote)
+            }
+        }
+
+        override fun onError(ex: Exception?) {
+            mainThread.launch {
+                rtcListener?.onError(ex)
+            }
         }
     }
 
