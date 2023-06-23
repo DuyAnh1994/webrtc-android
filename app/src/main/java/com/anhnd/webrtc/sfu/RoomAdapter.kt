@@ -2,10 +2,11 @@ package com.anhnd.webrtc.sfu
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.anhnd.webrtc.R
 import com.anhnd.webrtc.databinding.ParticipantGridItemBinding
-import com.anhnd.webrtc.databinding.ParticipantItemBinding
 import com.anhnd.webrtc.sfu.domain.model.Participant
 import com.anhnd.webrtc.utils.initializeSurfaceView
 import com.bglobal.lib.publish.WebRTCController
@@ -51,25 +52,39 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
         diffResult.dispatchUpdatesTo(this)
     }
 
-//    inner class ParticipantVH(private val binding: ParticipantItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    //    inner class ParticipantVH(private val binding: ParticipantItemBinding) : RecyclerView.ViewHolder(binding.root) {
     inner class ParticipantVH(private val binding: ParticipantGridItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
+        private var initialize = false
+
         init {
-            rtcManager?.getEglBase()?.let {
-                binding.svrUser.initializeSurfaceView(it)
+            try {
+                if (!initialize) {
+                    rtcManager?.getEglBase()?.let {
+                        binding.svrUser.initializeSurfaceView(it)
+                    }
+                    initialize = true
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
 
         fun onBind(data: Participant) {
-            if (data.isLocal) {
-                rtcManager?.startLocalVideo(binding.svrUser)
-            }
+//            if (data.isLocal) {
+//                rtcManager?.addLocalVideo(binding.svrUser)
+//            }
 
             binding.apply {
                 tvName.text = String.format("name: ${data.name}")
 //                tvMediaStreamInstance.text = String.format("ms ins: ${data.mediaStream}")
 //                tvStreamId.text = String.format("streamId: ${data.streamId}")
 //                tvSubIdList.text = data.getStreamIdSecondary()
+                cvParti.strokeColor = if (data.isLocal) {
+                    ContextCompat.getColor(binding.root.context, R.color.red)
+                } else {
+                    ContextCompat.getColor(binding.root.context, R.color.transparent)
+                }
             }
             data.addSink(binding.svrUser)
         }

@@ -184,7 +184,7 @@ class BglobalRtcClient(
      * camera
      */
 
-    fun startLocalVideo(surface: SurfaceViewRenderer) {
+    fun addLocalVideo(surface: SurfaceViewRenderer) {
         try {
             val surfaceTextureHelper = SurfaceTextureHelper.create(Thread.currentThread().name, eglBase.eglBaseContext)
             localVideoCapture = getCameraVideoCapture()

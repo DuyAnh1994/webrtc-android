@@ -47,14 +47,24 @@
             android:layout_toStartOf="@id/svrLocal">
 
             <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/tvMediaStreamCallback"
+                android:id="@+id/tvName"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="2dp"
                 android:textColor="@color/black"
                 android:textSize="10sp"
                 android:textStyle="italic"
-                tools:text="streamdId: \n0. eb80bac5-561f-42b4-940d-dd7d2b058799\n1. eb80bac5-561f-42b4-940d-dd7d2b058799\n2. eb80bac5-561f-42b4-940d-dd7d2b058799\n3. eb80bac5-561f-42b4-940d-dd7d2b058799" />
+                tools:text="user name " />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="2dp"
+                android:textColor="@color/black"
+                android:textSize="10sp"
+                android:textStyle="italic"
+                tools:text="" />
 
         </androidx.core.widget.NestedScrollView>
 

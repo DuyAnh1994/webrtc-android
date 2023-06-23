@@ -21,22 +21,16 @@ class SfuViewModel : ViewModel() {
     private val _participantListState = MutableLiveData(participantList)
     val participantListState = _participantListState.asLiveData()
 
-    var localName = ""
+    var localName = MutableLiveData("")
 
     init {
 //        initLocalStream()
-        localName = getRandomString()
+        localName.postValue(getRandomString())
     }
 
-    private fun initLocalStream() {
-        val item = Participant(
-            id = 0,
-            name = "n/a",
-            streamId = "n/a",
-            isLocal = true
-        )
-        participantList.add(item)
-        _participantListState.postSelf()
+
+    fun getLocalName(): String {
+        return localName.value ?: ""
     }
 
     fun replaceParticipantList(list: List<ParticipantRTC>) {
@@ -47,13 +41,13 @@ class SfuViewModel : ViewModel() {
                 streamId = it.streamId,
 //                subIdList = it.subIdList,
                 mediaStream = it.mediaStream,
-                isLocal = (it.name == localName)
+                isLocal = (it.name == localName.value)
             )
         }.toMutableList()
 
 
         newList.forEachIndexed { i, v ->
-            if (v.isLocal) {
+            if (v.isLocal && i != 0) {
                 newList.swap(0, i)
             }
         }
@@ -154,7 +148,7 @@ class SfuViewModel : ViewModel() {
 
     private fun getRandomString(): String {
         val allowedChars = ('a'..'z')
-        return (1..3)
+        return (1..4)
             .map { allowedChars.random() }
             .joinToString("")
     }

@@ -1,7 +1,6 @@
 package com.anhnd.webrtc.sfu
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
@@ -11,7 +10,6 @@ import com.anhnd.webrtc.utils.observer
 import com.bglobal.lib.publish.BglobalRtcListener
 import com.bglobal.lib.publish.ParticipantRTC
 import com.bglobal.lib.publish.WebRTCController
-import org.webrtc.MediaStream
 
 class SfuActivity : AppCompatActivity() {
 
@@ -27,10 +25,10 @@ class SfuActivity : AppCompatActivity() {
     private val rtcManager by lazy { WebRTCController(application) }
     private val rtcListener = object : BglobalRtcListener {
         override fun onUserListInRoom(totalList: List<ParticipantRTC>) {
-            Log.d(TAG, "\n\n onUserListInRoom   total = ${totalList.count()} ----------------------------------------------")
-            totalList.forEach {
-                Log.d(TAG, "onUserListInRoom: id=${it.id} name=${it.name} streamId=${it.streamId} ms=${it.mediaStream}")
-            }
+//            Log.d(TAG, "\n\n onUserListInRoom   total = ${totalList.count()} ----------------------------------------------")
+//            totalList.forEach {
+//                Log.d(TAG, "onUserListInRoom: id=${it.id} name=${it.name} streamId=${it.streamId} ms=${it.mediaStream}")
+//            }
 
             viewModel.replaceParticipantList(totalList)
         }
@@ -45,7 +43,7 @@ class SfuActivity : AppCompatActivity() {
 //            }
 //
 //            runOnUiThread {
-//                binding.tvMediaStreamCallback.text = streamIdSB.toString()
+//                binding.tvLog.text = streamIdSB.toString()
 //            }
 //        }
 //
@@ -61,7 +59,7 @@ class SfuActivity : AppCompatActivity() {
 //            }
 //
 //            runOnUiThread {
-//                binding.tvMediaStreamCallback.text = streamIdSB.toString()
+//                binding.tvLog.text = streamIdSB.toString()
 //            }
 //        }
     }
@@ -77,11 +75,15 @@ class SfuActivity : AppCompatActivity() {
         roomAdapter.rtcManager = rtcManager
 
         binding.rvRoom.apply {
-            layoutManager = GridLayoutManager(this@SfuActivity, 4)
+            layoutManager = GridLayoutManager(this@SfuActivity, 5)
             adapter = roomAdapter
         }
 
         binding.ivCall.setOnClickListener { doCall() }
+
+        observer(viewModel.localName) {
+            binding.tvName.text = String.format("local name:[ $it ]")
+        }
 
         binding.ivCheckPartiList.setOnClickListener {
             rtcManager.peer()
@@ -106,11 +108,10 @@ class SfuActivity : AppCompatActivity() {
 
         observer(viewModel.participantListState) {
             roomAdapter.submitList(it)
-            roomAdapter.notifyDataSetChanged()
         }
 
         binding.svrLocal.initializeSurfaceView(rtcManager.getEglBase())
-        rtcManager.startLocalVideo(binding.svrLocal)
+        rtcManager.addLocalVideo(binding.svrLocal)
     }
 
     override fun onDestroy() {
@@ -119,6 +120,6 @@ class SfuActivity : AppCompatActivity() {
     }
 
     private fun doCall() {
-        rtcManager.startCall(viewModel.localName)
+        rtcManager.startCall(viewModel.getLocalName())
     }
 }

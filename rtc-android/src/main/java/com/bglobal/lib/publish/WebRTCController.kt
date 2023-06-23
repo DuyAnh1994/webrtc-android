@@ -128,8 +128,8 @@ class WebRTCController(private val application: Application) {
         return rtcClient?.eglBase ?: throw RtcException("EglBase instance not yet initialization")
     }
 
-    fun startLocalVideo(surface: SurfaceViewRenderer) {
-        rtcClient?.startLocalVideo(surface)
+    fun addLocalVideo(surface: SurfaceViewRenderer) {
+        rtcClient?.addLocalVideo(surface)
     }
 
     fun addRtcListener(listener: BglobalRtcListener) {

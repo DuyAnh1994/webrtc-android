@@ -24,7 +24,7 @@ class BglobalSocketClient(
 ) {
 
     companion object {
-        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=5"
+        private const val WS_URL = "wss://dev.turn2.gtrios.io:8084/?id=4"
     }
 
     private var webSocket: WebSocketClient? = null
