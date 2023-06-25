@@ -31,7 +31,7 @@ class SfuActivity : AppCompatActivity() {
         binding = SfuActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val id = intent.getStringExtra("room_id") ?: viewModel.getRoomId()
-        viewModel.roomId.postValue(id)
+        viewModel.roomId.value = id
         rtcManager.build(viewModel.getRoomId())
         rtcManager.addRtcListener(rtcListener)
 

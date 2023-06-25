@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.anhnd.webrtc.R
 import com.anhnd.webrtc.databinding.ParticipantGridItemBinding
 import com.anhnd.webrtc.sfu.domain.model.Participant
+import com.anhnd.webrtc.utils.addSink
 import com.anhnd.webrtc.utils.initializeSurfaceView
+import com.anhnd.webrtc.utils.removeSink
 import com.bglobal.lib.publish.WebRTCController
 
 class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
@@ -86,7 +88,8 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
                     ContextCompat.getColor(binding.root.context, R.color.transparent)
                 }
             }
-            data.addSink(binding.svrUser)
+            binding.svrUser.removeSink(data.getVideoTrack())
+            binding.svrUser.addSink(data.getVideoTrack())
         }
     }
 }

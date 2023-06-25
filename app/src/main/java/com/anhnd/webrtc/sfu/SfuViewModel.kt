@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.anhnd.webrtc.sfu.domain.model.Participant
 import com.anhnd.webrtc.utils.asLiveData
 import com.anhnd.webrtc.utils.postSelf
-import com.anhnd.webrtc.utils.swap
 import com.bglobal.lib.publish.ParticipantRTC
 import com.bglobal.lib.utils.replace
 import kotlinx.coroutines.launch
@@ -50,17 +49,17 @@ class SfuViewModel : ViewModel() {
             )
         }.toMutableList()
 
-        for (i in 0..38) {
-            newList.add(newList.first())
-        }
+//        for (i in 0..38) {
+//            newList.add(newList.first())
+//        }
 
-        newList.forEachIndexed { i, v ->
-            if (v.isLocal && i != 0) {
-                newList.swap(0, i)
-            }
-        }
+//        newList.forEachIndexed { i, v ->
+//            if (v.isLocal && i != 0) {
+//                newList.swap(0, i)
+//            }
+//        }
 
-        _participantListState.value?.replace(newList)
+        participantList.replace(newList)
         _participantListState.postSelf()
     }
 

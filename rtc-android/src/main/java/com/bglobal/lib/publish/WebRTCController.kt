@@ -64,6 +64,7 @@ class WebRTCController(private val application: Application) {
             errorListener = errorListener
         )
         socket?.roomId = roomId
+        socket?.connect()
         rtcClient = BglobalRtcClient(
             application = this.application,
             observer = peerConnectionObserverImpl,

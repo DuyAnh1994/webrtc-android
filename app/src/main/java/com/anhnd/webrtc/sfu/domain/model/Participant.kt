@@ -1,8 +1,8 @@
 package com.anhnd.webrtc.sfu.domain.model
 
-import android.util.Log
 import org.webrtc.MediaStream
 import org.webrtc.SurfaceViewRenderer
+import org.webrtc.VideoTrack
 
 data class Participant(
     var id: Int,
@@ -14,12 +14,8 @@ data class Participant(
     var isLocal: Boolean = false
 ) {
 
-    fun addSink(surface: SurfaceViewRenderer) {
-//        if (!isLoaded) {
-        mediaStream?.videoTracks?.firstOrNull()?.addSink(surface)
-        Log.d("anhnd", "addSink: ${mediaStream?.videoTracks?.firstOrNull()}")
-        isLoaded = true
-//        }
+    fun getVideoTrack(): VideoTrack? {
+        return mediaStream?.videoTracks?.firstOrNull()
     }
 
     fun getStreamIdSecondary(): String {

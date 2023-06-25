@@ -33,10 +33,10 @@ class BglobalSocketClient(
     var roomId = "1"
 
     init {
-        connectSocket()
+//        connectSocket()
     }
 
-    private fun connectSocket() {
+    fun connect() {
         val wsUrl = String.format(WS_URL, roomId)
         webSocket = object : WebSocketClient(URI(wsUrl)) {
             override fun onOpen(handshakedata: ServerHandshake?) {

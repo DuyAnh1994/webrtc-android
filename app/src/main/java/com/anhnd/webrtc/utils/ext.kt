@@ -9,7 +9,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.webrtc.EglBase
+import org.webrtc.MediaStreamTrack
 import org.webrtc.SurfaceViewRenderer
+import org.webrtc.VideoSink
+import org.webrtc.VideoTrack
 
 fun View.show() {
     visibility = View.VISIBLE
@@ -58,4 +61,12 @@ fun <T> MutableList<T>.swap(index1: Int, index2: Int){
     val tmp = this[index1]
     this[index1] = this[index2]
     this[index2] = tmp
+}
+
+fun SurfaceViewRenderer.addSink(track : VideoTrack?) {
+    track?.addSink(this)
+}
+
+fun SurfaceViewRenderer.removeSink(track : VideoTrack?) {
+    track?.removeSink(this)
 }
