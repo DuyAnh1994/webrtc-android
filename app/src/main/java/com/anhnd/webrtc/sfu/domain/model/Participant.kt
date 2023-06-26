@@ -18,6 +18,10 @@ data class Participant(
         return mediaStream?.videoTracks?.firstOrNull()
     }
 
+    fun addSink(surface: SurfaceViewRenderer) {
+        mediaStream?.videoTracks?.firstOrNull()?.addSink(surface)
+    }
+
     fun getStreamIdSecondary(): String {
         val sb = StringBuilder("subIdList: \n")
 //        subIdList.forEachIndexed { i, v ->

@@ -1,4 +1,4 @@
-package com.anhnd.webrtc.sfu
+package com.anhnd.webrtc.sfu.presentation.call
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.anhnd.webrtc.R
 import com.anhnd.webrtc.databinding.ParticipantGridItemBinding
+import com.anhnd.webrtc.databinding.ParticipantItemBinding
 import com.anhnd.webrtc.sfu.domain.model.Participant
 import com.anhnd.webrtc.utils.addSink
 import com.anhnd.webrtc.utils.initializeSurfaceView
@@ -25,8 +26,8 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
     private var currentList = mutableListOf<Participant>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticipantVH {
-//        val binding = ParticipantItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        val binding = ParticipantGridItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ParticipantItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+//        val binding = ParticipantGridItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ParticipantVH(binding)
     }
 
@@ -54,8 +55,8 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
         diffResult.dispatchUpdatesTo(this)
     }
 
-    //    inner class ParticipantVH(private val binding: ParticipantItemBinding) : RecyclerView.ViewHolder(binding.root) {
-    inner class ParticipantVH(private val binding: ParticipantGridItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        inner class ParticipantVH(private val binding: ParticipantItemBinding) : RecyclerView.ViewHolder(binding.root) {
+//    inner class ParticipantVH(private val binding: ParticipantGridItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
         private var initialize = false
 
@@ -74,22 +75,25 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
 
         fun onBind(data: Participant) {
             if (data.isLocal) {
-                rtcManager?.addLocalVideo(binding.svrUser)
+//                rtcManager?.addLocalVideo(binding.svrUser)
+            } else {
+//            data.addSink(binding.svrUser)
+
+//            binding.svrUser.removeSink(data.getVideoTrack())
+                binding.svrUser.addSink(data.getVideoTrack())
             }
 
             binding.apply {
                 tvName.text = String.format("--${data.name}--")
-//                tvMediaStreamInstance.text = String.format("ms ins: ${data.mediaStream}")
-//                tvStreamId.text = String.format("streamId: ${data.streamId}")
-//                tvSubIdList.text = data.getStreamIdSecondary()
-                cvParti.strokeColor = if (data.isLocal) {
-                    ContextCompat.getColor(binding.root.context, R.color.red)
-                } else {
-                    ContextCompat.getColor(binding.root.context, R.color.transparent)
-                }
+                tvMediaStreamInstance.text = String.format("ms ins: ${data.mediaStream}")
+                tvStreamId.text = String.format("streamId: ${data.streamId}")
+                tvSubIdList.text = data.getStreamIdSecondary()
+//                cvParti.strokeColor = if (data.isLocal) {
+//                    ContextCompat.getColor(binding.root.context, R.color.red)
+//                } else {
+//                    ContextCompat.getColor(binding.root.context, R.color.transparent)
+//                }
             }
-            binding.svrUser.removeSink(data.getVideoTrack())
-            binding.svrUser.addSink(data.getVideoTrack())
         }
     }
 }
@@ -98,7 +102,6 @@ class ParticipantItemCallback : DiffUtil.ItemCallback<Participant>() {
 
     override fun areItemsTheSame(oldItem: Participant, newItem: Participant): Boolean {
         return oldItem.id == newItem.id
-
     }
 
     override fun areContentsTheSame(oldItem: Participant, newItem: Participant): Boolean {

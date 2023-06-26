@@ -15,6 +15,12 @@ import com.google.gson.GsonBuilder
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
+import java.security.SecureRandom
+import java.security.cert.CertificateException
+import java.security.cert.X509Certificate
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 
 class BglobalSocketClient(
     private val commonListener: BglobalSocketListener.Common,
@@ -58,6 +64,11 @@ class BglobalSocketClient(
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
                 Log.d(TAG, "onClose() called with: code = $code, reason = $reason, remote = $remote")
+//                if (code == 1006) {
+//                    webSocket?.reconnect()
+//                    return
+//                }
+
                 commonListener.onClose(code, reason, remote)
             }
 
@@ -67,7 +78,14 @@ class BglobalSocketClient(
             }
         }
 
-        webSocket?.connect()
+//        val builder = OkHttpClient.Builder()
+//        builder.sslSocketFactory(SSLSocketClient.getSSLSocketFactory(), SSLSocketClient.getX509TrustManager())
+
+        webSocket?.apply {
+            setSocketFactory(SSLSocketClient.getSSLSocketFactory())
+            connectionLostTimeout = Int.MAX_VALUE
+            connect()
+        }
     }
 
     fun close() {
@@ -140,6 +158,32 @@ class BglobalSocketClient(
 //            Log.d(TAG, "send json : type=${rtcDto.type} name=${rtcDto.name} transId=${rtcDto.transId}")
             Log.d(TAG_SOCKET, "\n\nemit:\textra=[$extra]  transId=[${rtcDto.transId}]  json=$json")
             webSocket?.send(json)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun trustEveryone() {
+        try {
+            HttpsURLConnection.setDefaultHostnameVerifier { hostname, session -> true }
+            val context = SSLContext.getInstance("TLS")
+            context.init(null, arrayOf<X509TrustManager>(object : X509TrustManager {
+                @Throws(CertificateException::class)
+                override fun checkClientTrusted(chain: Array<X509Certificate?>?,
+                                                authType: String?) {
+                }
+
+                @Throws(CertificateException::class)
+                override fun checkServerTrusted(chain: Array<X509Certificate?>?,
+                                                authType: String?) {
+                }
+
+                override fun getAcceptedIssuers(): Array<X509Certificate> {
+                    return emptyArray()
+                }
+            }), SecureRandom())
+            HttpsURLConnection.setDefaultSSLSocketFactory(
+                context.socketFactory)
         } catch (e: Exception) {
             e.printStackTrace()
         }

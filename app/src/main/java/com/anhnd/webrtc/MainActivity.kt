@@ -8,8 +8,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.MainActivityBinding
 import com.anhnd.webrtc.p2p.P2PActivity
-import com.anhnd.webrtc.sfu.SfuActivity
-import com.anhnd.webrtc.sfu.WaitingRoomListActivity
+import com.anhnd.webrtc.sfu.presentation.waiting.WaitingRoomListActivity
 import com.anhnd.webrtc.utils.toast
 import com.permissionx.guolindev.PermissionX
 

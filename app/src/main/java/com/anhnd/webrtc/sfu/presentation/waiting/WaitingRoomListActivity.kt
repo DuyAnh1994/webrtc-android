@@ -1,9 +1,10 @@
-package com.anhnd.webrtc.sfu
+package com.anhnd.webrtc.sfu.presentation.waiting
 
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.anhnd.webrtc.databinding.WaitingRoomListActivityBinding
+import com.anhnd.webrtc.sfu.presentation.call.SfuActivity
 
 class WaitingRoomListActivity : AppCompatActivity() {
 

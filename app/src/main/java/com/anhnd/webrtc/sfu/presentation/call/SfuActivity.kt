@@ -1,6 +1,7 @@
-package com.anhnd.webrtc.sfu
+package com.anhnd.webrtc.sfu.presentation.call
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
@@ -38,7 +39,7 @@ class SfuActivity : AppCompatActivity() {
         roomAdapter.rtcManager = rtcManager
 
         binding.rvRoom.apply {
-            layoutManager = GridLayoutManager(this@SfuActivity, 5)
+//            layoutManager = GridLayoutManager(this@SfuActivity, 5)
             adapter = roomAdapter
         }
 
@@ -111,10 +112,10 @@ class SfuActivity : AppCompatActivity() {
         }
 
         override fun onUserListInRoom(totalList: List<ParticipantRTC>) {
-//            Log.d(TAG, "\n\n onUserListInRoom   total = ${totalList.count()} ----------------------------------------------")
-//            totalList.forEach {
-//                Log.d(TAG, "onUserListInRoom: id=${it.id} name=${it.name} streamId=${it.streamId} ms=${it.mediaStream}")
-//            }
+            Log.d(TAG, "\n\n onUserListInRoom   total = ${totalList.count()} ----------------------------------------------")
+            totalList.forEach {
+                Log.d(TAG, "onUserListInRoom: id=${it.id} name=${it.name} streamId=${it.streamId} ms=${it.mediaStream}")
+            }
 
             viewModel.replaceParticipantList(totalList)
         }

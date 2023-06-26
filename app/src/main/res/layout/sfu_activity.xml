@@ -104,61 +104,66 @@
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/ivCall"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="4dp"
+            android:layout_weight="1"
             android:background="@drawable/circle_background"
             android:clickable="true"
             android:focusable="true"
-            android:padding="12dp"
+            android:paddingVertical="24dp"
             app:backgroundTint="@color/cardview_dark_background"
             app:srcCompat="@drawable/ic_accept" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/ivCheckPartiList"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="4dp"
+            android:layout_weight="1"
             android:background="@drawable/circle_background"
             android:clickable="true"
             android:focusable="true"
-            android:padding="12dp"
+            android:paddingVertical="24dp"
             app:backgroundTint="@color/cardview_dark_background"
             app:srcCompat="@drawable/ic_baseline_videocam_24" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/endCallButton"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="4dp"
+            android:layout_weight="1"
             android:background="@drawable/circle_background"
             android:clickable="true"
             android:focusable="true"
-            android:padding="12dp"
+            android:paddingVertical="24dp"
             app:backgroundTint="@android:color/holo_red_dark"
             app:srcCompat="@drawable/ic_baseline_call_end_24" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/btnSwitchCamera"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="4dp"
+            android:layout_weight="1"
             android:background="@drawable/circle_background"
             android:clickable="true"
             android:focusable="true"
-            android:padding="12dp"
+            android:paddingVertical="24dp"
             app:backgroundTint="@color/cardview_dark_background"
             app:srcCompat="@drawable/ic_baseline_cameraswitch_24" />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/ivMute"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            android:layout_margin="4dp"
+            android:layout_weight="1"
             android:background="@drawable/circle_background"
             android:clickable="true"
             android:focusable="true"
-            android:padding="12dp"
+            android:paddingVertical="24dp"
             app:backgroundTint="@color/cardview_dark_background"
             app:srcCompat="@drawable/ic_baseline_speaker_up_24" />
 
