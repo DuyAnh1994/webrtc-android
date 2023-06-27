@@ -82,7 +82,7 @@ class BglobalSocketClient(
 //        builder.sslSocketFactory(SSLSocketClient.getSSLSocketFactory(), SSLSocketClient.getX509TrustManager())
 
         webSocket?.apply {
-            setSocketFactory(SSLSocketClient.getSSLSocketFactory())
+//            setSocketFactory(SSLSocketClient.getSSLSocketFactory())
             connectionLostTimeout = Int.MAX_VALUE
             connect()
         }

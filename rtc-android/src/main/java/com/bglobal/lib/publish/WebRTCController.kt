@@ -39,16 +39,8 @@ class WebRTCController(private val application: Application) {
     private var myUser: ParticipantRTC? = null
     private var localName = ""
     private val participantRTCList = mutableListOf<ParticipantRTC>()
-
-    //    private val mediaStreamList = mutableListOf<MediaStream>()
-    private var isAddTrackRunning = false
-    private var isRemoveTrackRunning = false
-
     private var addMediaStream: StreamAsync? = null
-    private var removeMediaStream: StreamAsync? = null
-
     private var transIdByPeer = 0
-
     private val mainThread = CoroutineScope(Dispatchers.Main)
 
     init {
@@ -188,14 +180,6 @@ class WebRTCController(private val application: Application) {
         }
 
         override fun onRemoveStream(track: MediaStream?) {
-//            Log.d(TAG, "\n\nonRemoveStream: ${track?.id}")
-
-//            removeMediaStream = StreamAsync(
-//                id = track?.id,
-//                track = track,
-//                type = RoomState.USER_LEAVE
-//            )
-
             peer()
         }
     }
@@ -209,12 +193,6 @@ class WebRTCController(private val application: Application) {
     private val responseListener = object : BglobalSocketListener.Response {
         override fun onOffer(response: OfferResponse) {
             offerResponse(response.getSdp())
-
-            // TODO: có thể gây ra issue loop, kt log trên server
-//            CoroutineScope(Dispatchers.IO).launch {
-//                val request = handleModel.getPeer(username)
-//                socket?.sendMessageToSocket(request, "peer")
-//            }
         }
 
         override fun onPeer(participantDTOList: List<ParticipantDTO>) {

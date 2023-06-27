@@ -26,8 +26,8 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
     private var currentList = mutableListOf<Participant>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticipantVH {
-        val binding = ParticipantItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-//        val binding = ParticipantGridItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+//        val binding = ParticipantItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ParticipantGridItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ParticipantVH(binding)
     }
 
@@ -55,8 +55,8 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
         diffResult.dispatchUpdatesTo(this)
     }
 
-        inner class ParticipantVH(private val binding: ParticipantItemBinding) : RecyclerView.ViewHolder(binding.root) {
-//    inner class ParticipantVH(private val binding: ParticipantGridItemBinding) : RecyclerView.ViewHolder(binding.root) {
+//        inner class ParticipantVH(private val binding: ParticipantItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class ParticipantVH(private val binding: ParticipantGridItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
         private var initialize = false
 
@@ -85,14 +85,14 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
 
             binding.apply {
                 tvName.text = String.format("--${data.name}--")
-                tvMediaStreamInstance.text = String.format("ms ins: ${data.mediaStream}")
-                tvStreamId.text = String.format("streamId: ${data.streamId}")
-                tvSubIdList.text = data.getStreamIdSecondary()
-//                cvParti.strokeColor = if (data.isLocal) {
-//                    ContextCompat.getColor(binding.root.context, R.color.red)
-//                } else {
-//                    ContextCompat.getColor(binding.root.context, R.color.transparent)
-//                }
+//                tvMediaStreamInstance.text = String.format("ms ins: ${data.mediaStream}")
+//                tvStreamId.text = String.format("streamId: ${data.streamId}")
+//                tvSubIdList.text = data.getStreamIdSecondary()
+                cvParti.strokeColor = if (data.isLocal) {
+                    ContextCompat.getColor(binding.root.context, R.color.red)
+                } else {
+                    ContextCompat.getColor(binding.root.context, R.color.transparent)
+                }
             }
         }
     }

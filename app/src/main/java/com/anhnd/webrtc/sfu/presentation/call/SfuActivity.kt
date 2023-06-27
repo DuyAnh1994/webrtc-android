@@ -39,7 +39,7 @@ class SfuActivity : AppCompatActivity() {
         roomAdapter.rtcManager = rtcManager
 
         binding.rvRoom.apply {
-//            layoutManager = GridLayoutManager(this@SfuActivity, 5)
+            layoutManager = GridLayoutManager(this@SfuActivity, 4)
             adapter = roomAdapter
         }
 
