@@ -113,6 +113,9 @@ class BglobalSocketClient(
             val response = gson.fromJson(rawData, OfferResponse::class.java)
             responseListener.onOffer(response)
         } catch (e: Exception) {
+            /**
+             * xử lý peer response
+             */
             val response = gson.fromJson(rawData, PeerResponse::class.java)
             val peerBridgeDTO = gson.fromJson(response.data, PeerBridgeMap::class.java)
             Log.d(TAG, "onMsgByResponse models: ${peerBridgeDTO.models}")
@@ -128,7 +131,7 @@ class BglobalSocketClient(
                 }
             }
 
-            Log.d(TAG, "onMsgByResponse: $participantDTOList")
+            Log.d(TAG, "onMsgByResponse participantDTOList: $participantDTOList")
 
             responseListener.onPeer(participantDTOList)
         }

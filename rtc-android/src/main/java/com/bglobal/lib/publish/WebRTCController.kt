@@ -16,6 +16,7 @@ import com.bglobal.lib.webrtc.data.socket.BglobalSocketListener
 import com.bglobal.lib.webrtc.data.socket.HandleModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.java_websocket.handshake.ServerHandshake
 import org.webrtc.CameraVideoCapturer
@@ -68,16 +69,6 @@ class WebRTCController(private val application: Application) {
 
     fun startCall(name: String) {
         localName = name
-        myUser = ParticipantRTC(
-            id = 0,
-            name = localName,
-            streamId = "",
-            subIdList = mutableListOf()
-        )
-        myUser?.let {
-            participantRTCList.add(0, it)
-            rtcListener?.onUserListInRoom(participantRTCList)
-        }
         rtcClient?.createOffer()
     }
 
@@ -94,12 +85,13 @@ class WebRTCController(private val application: Application) {
         socket?.sendMessageToSocket(request, "create_offer")
     }
 
-    private fun offerResponse(joinedSdp: String?) {
+    private fun offerResponse(joinedSdp: String?, onSuccess: (() -> Unit) = {}) {
         /*
          * set remote với type == ANSWER để stream lên server
          */
         val session = SessionDescription(SessionDescription.Type.ANSWER, joinedSdp)
         rtcClient?.setRemoteSdpByAnswer(session)
+        onSuccess.invoke()
     }
 
     fun updateOffer(rtcDto: AnswerResponse) {

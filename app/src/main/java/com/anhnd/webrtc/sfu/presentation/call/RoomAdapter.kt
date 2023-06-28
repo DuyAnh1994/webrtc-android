@@ -1,5 +1,6 @@
 package com.anhnd.webrtc.sfu.presentation.call
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -64,6 +65,7 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
             try {
                 if (!initialize) {
                     rtcManager?.getEglBase()?.let {
+                        Log.d(TAG, "initializeSurfaceView")
                         binding.svrUser.initializeSurfaceView(it)
                     }
                     initialize = true
@@ -74,6 +76,8 @@ class RoomAdapter : RecyclerView.Adapter<RoomAdapter.ParticipantVH>() {
         }
 
         fun onBind(data: Participant) {
+//            rtcManager?.addLocalVideo(binding.svrUser)
+
             if (data.isLocal) {
 //                rtcManager?.addLocalVideo(binding.svrUser)
             } else {
