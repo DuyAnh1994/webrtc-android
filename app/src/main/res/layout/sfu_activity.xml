@@ -23,15 +23,20 @@
         android:layout_marginBottom="20dp"
         android:layout_weight="1">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvRoom"
+<!--        <androidx.recyclerview.widget.RecyclerView-->
+<!--            android:id="@+id/rvRoom"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_alignParentBottom="true"-->
+<!--            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"-->
+<!--            app:spanCount="2"-->
+<!--            tools:itemCount="6"-->
+<!--            tools:listitem="@layout/participant_item" />-->
+
+        <GridLayout
+            android:id="@+id/glRoom"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentBottom="true"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:spanCount="2"
-            tools:itemCount="6"
-            tools:listitem="@layout/participant_item" />
+            android:layout_height="match_parent"/>
 
     </RelativeLayout>
 

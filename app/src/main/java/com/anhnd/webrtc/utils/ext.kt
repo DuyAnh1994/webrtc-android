@@ -2,8 +2,10 @@ package com.anhnd.webrtc.utils
 
 import android.app.Activity
 import android.view.View
+import android.widget.GridLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.children
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -13,6 +15,8 @@ import org.webrtc.MediaStreamTrack
 import org.webrtc.SurfaceViewRenderer
 import org.webrtc.VideoSink
 import org.webrtc.VideoTrack
+import kotlin.math.max
+import kotlin.math.min
 
 fun View.show() {
     visibility = View.VISIBLE

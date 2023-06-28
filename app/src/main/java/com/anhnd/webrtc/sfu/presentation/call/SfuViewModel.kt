@@ -49,7 +49,7 @@ class SfuViewModel : ViewModel() {
             )
         }.toMutableList()
 
-//        for (i in 0..38) {
+//        for (i in 0..5) {
 //            newList.add(newList.first())
 //        }
 

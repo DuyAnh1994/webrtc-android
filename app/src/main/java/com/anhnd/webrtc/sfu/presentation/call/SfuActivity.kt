@@ -2,11 +2,14 @@ package com.anhnd.webrtc.sfu.presentation.call
 
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.ViewGroup
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.GridLayoutManager
 import com.anhnd.webrtc.R
+import com.anhnd.webrtc.databinding.ParticipantGridItemBinding
 import com.anhnd.webrtc.databinding.SfuActivityBinding
+import com.anhnd.webrtc.utils.addSink
 import com.anhnd.webrtc.utils.getAppColor
 import com.anhnd.webrtc.utils.initializeSurfaceView
 import com.anhnd.webrtc.utils.observer
@@ -38,10 +41,11 @@ class SfuActivity : AppCompatActivity() {
 
         roomAdapter.rtcManager = rtcManager
 
-        binding.rvRoom.apply {
-            layoutManager = GridLayoutManager(this@SfuActivity, 4)
-            adapter = roomAdapter
-        }
+//        binding.rvRoom.apply {
+//            layoutManager = GridLayoutManager(this@SfuActivity, 4)
+//            adapter = roomAdapter
+//        }
+
 
         binding.ivCall.setOnClickListener { doCall() }
 
@@ -82,11 +86,28 @@ class SfuActivity : AppCompatActivity() {
         }
 
         observer(viewModel.participantListState) {
-            roomAdapter.submitList(it)
+//            roomAdapter.submitList(it)
+
+            Log.d(TAG, "onCreate: participants count=[${it.count()}]")
+
+            it.forEach { parti ->
+                val itemView = createVideoView(binding.glRoom)
+                itemView.svrUser.initializeSurfaceView(rtcManager.getEglBase())
+                itemView.svrUser.addSink(parti.getVideoTrack())
+                binding.glRoom.addView(itemView.root)
+            }
         }
 
         binding.svrLocal.initializeSurfaceView(rtcManager.getEglBase())
         rtcManager.addLocalVideo(binding.svrLocal)
+    }
+
+    private fun createVideoView(parent: ViewGroup): ParticipantGridItemBinding {
+        return ParticipantGridItemBinding.inflate(
+            LayoutInflater.from(this),
+            parent,
+            false
+        )
     }
 
     override fun onDestroy() {
