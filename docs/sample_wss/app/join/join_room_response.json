@@ -1,0 +1,24 @@
+{
+  "type": "response",
+  "transId": 0,
+  "data": {
+    "sdp": "v=0\r\no=- 1688354862127...",
+    "room": {
+      "id": "1",
+      "participants": [
+        {
+          "id": 0,
+          "name": "a",
+          "streamsIn": [
+            "a81be702-3996-4245-aeea-68b92a75c6a6"
+          ],
+          "streamsOut": [],
+          "streamMap": {},
+          "streams": [
+            null
+          ]
+        }
+      ]
+    }
+  }
+}

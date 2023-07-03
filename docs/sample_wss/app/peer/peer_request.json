@@ -1,0 +1,8 @@
+{
+  "type": "cmd",
+  "transId": 2,
+  "name": "peer",
+  "data": {
+    "name": "a"
+  }
+}

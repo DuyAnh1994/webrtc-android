@@ -1,0 +1,8 @@
+{
+  "type": "event",
+  "name": "data_channel",
+  "data": {
+    "data_channel": "{\"is_mute\":false}",
+    "name": "yqaa"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "type": "event",
+  "name": "participants",
+  "data": [
+    {
+      "id": 0,
+      "name": "a",
+      "streamsIn": [
+        "a81be702-3996-4245-aeea-68b92a75c6a6"
+      ],
+      "streamsOut": [],
+      "streamMap": {},
+      "streams": [
+        null
+      ]
+    },
+    {
+      "id": 1,
+      "name": "b",
+      "streamsIn": [],
+      "streamsOut": [],
+      "streamMap": {},
+      "streams": [
+        null
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "type": "cmd",
+  "name": "ctrl",
+  "data": {
+    "name": "data_channel",
+    "data_channel": "string custom json object (option_dto)"
+  }
+}
