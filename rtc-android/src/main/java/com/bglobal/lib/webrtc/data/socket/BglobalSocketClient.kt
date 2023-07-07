@@ -7,20 +7,16 @@ import com.bglobal.lib.webrtc.data.model.base.RtcBaseRequest
 import com.bglobal.lib.webrtc.data.model.base.RtcBaseResponse
 import com.bglobal.lib.webrtc.data.model.call.ParticipantDTO
 import com.bglobal.lib.webrtc.data.model.call.answer.AnswerResponse
+import com.bglobal.lib.webrtc.data.model.call.controller.ControllerResponse
+import com.bglobal.lib.webrtc.data.model.call.controller.ControllerResponseString
 import com.bglobal.lib.webrtc.data.model.call.offer.OfferResponse
-import com.bglobal.lib.webrtc.data.model.call.participant.ParticipantResponse
+import com.bglobal.lib.webrtc.data.model.call.option.OptionDTO
 import com.bglobal.lib.webrtc.data.model.call.peer.PeerBridgeMap
 import com.bglobal.lib.webrtc.data.model.call.peer.PeerResponse
 import com.google.gson.GsonBuilder
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
-import java.security.SecureRandom
-import java.security.cert.CertificateException
-import java.security.cert.X509Certificate
-import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLContext
-import javax.net.ssl.X509TrustManager
 
 class BglobalSocketClient(
     private val commonListener: BglobalSocketListener.Common,
@@ -51,7 +47,7 @@ class BglobalSocketClient(
             }
 
             override fun onMessage(message: String?) {
-                Log.d(TAG, "===> onMessage raw data from wss: $message")
+                Log.d(TAG, "\n\n===> onMessage raw data from wss: $message")
 
                 val baseResponse = gson.fromJson(message, RtcBaseResponse::class.java)
                 when (baseResponse.type) {
@@ -89,7 +85,11 @@ class BglobalSocketClient(
     }
 
     fun close() {
-        webSocket?.close()
+        try {
+            webSocket?.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun onMsgByCommand(rawData: String?, topic: String?) {
@@ -113,27 +113,32 @@ class BglobalSocketClient(
             val response = gson.fromJson(rawData, OfferResponse::class.java)
             responseListener.onOffer(response)
         } catch (e: Exception) {
-            /**
-             * xử lý peer response
-             */
-            val response = gson.fromJson(rawData, PeerResponse::class.java)
-            val peerBridgeDTO = gson.fromJson(response.data, PeerBridgeMap::class.java)
-            Log.d(TAG, "onMsgByResponse models: ${peerBridgeDTO.models}")
-            val participantDTOList = gson.fromJson(peerBridgeDTO.models, Array<ParticipantDTO>::class.java).toList()
+            try {
+                /**
+                 * xử lý peer response
+                 */
+                val response = gson.fromJson(rawData, PeerResponse::class.java)
+                val peerBridgeDTO = gson.fromJson(response.data, PeerBridgeMap::class.java)
+                Log.d(TAG, "onMsgByResponse peer models: ${peerBridgeDTO.models}")
+                val participantDTOList = gson.fromJson(peerBridgeDTO.models, Array<ParticipantDTO>::class.java).toList()
 
-            val map = gson.fromJson(peerBridgeDTO.map, HashMap::class.java) as? HashMap<String, String>
+                val map = gson.fromJson(peerBridgeDTO.map, HashMap::class.java) as? HashMap<String, String>
 
-            map?.forEach { (k, v) ->
-                participantDTOList.forEach {
-                    if (v == it.name) {
-                        it.subIdList.add(k)
+                map?.forEach { (k, v) ->
+                    participantDTOList.forEach {
+                        if (v == it.name) {
+                            it.subIdList.add(k)
+                        }
                     }
                 }
+
+                Log.d(TAG, "onMsgByResponse peer participantDTOList: $participantDTOList")
+
+                responseListener.onPeer(participantDTOList)
+            } catch (e: Exception) {
+                val response = gson.fromJson(rawData, ControllerResponseString::class.java)
+                Log.d(TAG, "onMsgByResponse controller: ${response.data}")
             }
-
-            Log.d(TAG, "onMsgByResponse participantDTOList: $participantDTOList")
-
-            responseListener.onPeer(participantDTOList)
         }
     }
 
@@ -142,8 +147,19 @@ class BglobalSocketClient(
 
         when (topic) {
             SOCKET_TOPIC.PARTICIPANTS -> {
-                val response = gson.fromJson(rawData, ParticipantResponse::class.java)
-                eventListener.onParticipantList(response.data ?: mutableListOf())
+                // ko cần xử lý case này vì đã xử lý khi add/remove stream với webrtc rồi
+
+//                val response = gson.fromJson(rawData, ParticipantResponse::class.java)
+//                eventListener.onParticipantList(response.data ?: mutableListOf())
+            }
+
+            SOCKET_TOPIC.DATA_CHANNEL -> {
+                val response = gson.fromJson(rawData, ControllerResponse::class.java)
+                response?.controllerDTO?.let {
+                    eventListener.onDataChannel(it)
+                    val optionDTO = gson.fromJson(it.dataChannel, OptionDTO::class.java)
+                    eventListener.onOption(name = it.name, option = optionDTO)
+                }
             }
         }
     }
@@ -161,32 +177,6 @@ class BglobalSocketClient(
 //            Log.d(TAG, "send json : type=${rtcDto.type} name=${rtcDto.name} transId=${rtcDto.transId}")
             Log.d(TAG_SOCKET, "\n\nemit:\textra=[$extra]  transId=[${rtcDto.transId}]  json=$json")
             webSocket?.send(json)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    private fun trustEveryone() {
-        try {
-            HttpsURLConnection.setDefaultHostnameVerifier { hostname, session -> true }
-            val context = SSLContext.getInstance("TLS")
-            context.init(null, arrayOf<X509TrustManager>(object : X509TrustManager {
-                @Throws(CertificateException::class)
-                override fun checkClientTrusted(chain: Array<X509Certificate?>?,
-                                                authType: String?) {
-                }
-
-                @Throws(CertificateException::class)
-                override fun checkServerTrusted(chain: Array<X509Certificate?>?,
-                                                authType: String?) {
-                }
-
-                override fun getAcceptedIssuers(): Array<X509Certificate> {
-                    return emptyArray()
-                }
-            }), SecureRandom())
-            HttpsURLConnection.setDefaultSSLSocketFactory(
-                context.socketFactory)
         } catch (e: Exception) {
             e.printStackTrace()
         }

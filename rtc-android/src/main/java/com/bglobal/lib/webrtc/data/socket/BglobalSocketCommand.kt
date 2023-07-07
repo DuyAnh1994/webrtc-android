@@ -16,5 +16,7 @@ object BglobalSocketCommand {
         const val UPDATE = "update"
         const val PARTICIPANTS = "participants"
         const val PEER = "peer"
+        const val CONTROLLER = "ctrl"
+        const val DATA_CHANNEL = "data_channel"
     }
 }

@@ -17,6 +17,7 @@ import org.webrtc.MediaConstraints
 import org.webrtc.PeerConnection
 import org.webrtc.PeerConnection.RTCConfiguration
 import org.webrtc.PeerConnectionFactory
+import org.webrtc.RendererCommon
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceTextureHelper
 import org.webrtc.SurfaceViewRenderer
@@ -57,6 +58,18 @@ class BglobalRtcClient(
     private val constraints = MediaConstraints().apply {
         mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveAudio", "true"))
         mandatory.add(MediaConstraints.KeyValuePair("offerToReceiveVideo", "true"))
+
+        mandatory.add(MediaConstraints.KeyValuePair("maxWidth", "1080"))
+        mandatory.add(MediaConstraints.KeyValuePair("maxHeight", "1920"))
+
+        mandatory.add(MediaConstraints.KeyValuePair("minWidth", "640"))
+        mandatory.add(MediaConstraints.KeyValuePair("minHeight", "480"))
+
+        mandatory.add(MediaConstraints.KeyValuePair("maxFrameRate", "60"))
+        mandatory.add(MediaConstraints.KeyValuePair("minFrameRate", "30"))
+
+        mandatory.add(MediaConstraints.KeyValuePair("maxBitRate", "8000"))
+        mandatory.add(MediaConstraints.KeyValuePair("minBitRate", "1000"))
     }
     private var localVideoCapture: CameraVideoCapturer? = null
     private var localAudioTrack: AudioTrack? = null
@@ -184,20 +197,47 @@ class BglobalRtcClient(
      * camera
      */
 
-    fun addLocalVideo(surface: SurfaceViewRenderer) {
+
+    fun initLocalVideo(surface: SurfaceViewRenderer) {
         try {
             val surfaceTextureHelper = SurfaceTextureHelper.create(Thread.currentThread().name, eglBase.eglBaseContext)
             localVideoCapture = getCameraVideoCapture()
             localVideoCapture?.initialize(surfaceTextureHelper, surface.context, localVideoSource.capturerObserver)
-            localVideoCapture?.startCapture(1920, 1080, 60)
+            surface.setEnableHardwareScaler(true)
+            surface.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FIT)
 
             localAudioTrack = peerFactory.createAudioTrack("local_audio_track", localAudioSource)
             localVideoTrack = peerFactory.createVideoTrack("local_video_track", localVideoSource)
-            localVideoTrack?.addSink(surface)
 
             val id = UUID.randomUUID().toString()
             peerConnection?.addTrack(localAudioTrack, listOf(id))
             peerConnection?.addTrack(localVideoTrack, listOf(id))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun turnOnCamera() {
+        localVideoCapture?.startCapture(1920, 1080, 60)
+    }
+
+    fun turnOffCamera() {
+        localVideoCapture?.stopCapture()
+    }
+
+    fun addSinkLocal(surface: SurfaceViewRenderer) {
+        try {
+            localVideoTrack?.addSink(surface)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun removeSinkLocal(surface: SurfaceViewRenderer) {
+        try {
+            localVideoTrack?.removeSink(surface)
+            surface.release()
+//            localVideoTrack?.dispose()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -215,8 +255,8 @@ class BglobalRtcClient(
         localVideoCapture?.switchCamera(handler)
     }
 
-    fun toggleAudio(mute: Boolean) {
-        localAudioTrack?.setEnabled(mute)
+    fun toggleAudio(enable: Boolean) {
+        localAudioTrack?.setEnabled(enable)
     }
 
     fun volume(volume: Double) {
@@ -274,9 +314,13 @@ class BglobalRtcClient(
     }
 
     fun close() {
-        localAudioTrack?.dispose()
-        localVideoTrack?.dispose()
-        peerConnection?.close()
+        try {
+            localAudioTrack?.dispose()
+            localVideoTrack?.dispose()
+            peerConnection?.close()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     interface Callback {

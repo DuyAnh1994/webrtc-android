@@ -99,7 +99,8 @@ class SfuActivity : AppCompatActivity() {
         }
 
         binding.svrLocal.initializeSurfaceView(rtcManager.getEglBase())
-        rtcManager.addLocalVideo(binding.svrLocal)
+        rtcManager.initLocalVideo(binding.svrLocal)
+        rtcManager.turnOnCamera()
     }
 
     private fun createVideoView(parent: ViewGroup): ParticipantGridItemBinding {

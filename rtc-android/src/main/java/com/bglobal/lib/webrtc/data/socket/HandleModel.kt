@@ -4,7 +4,10 @@ import com.bglobal.lib.webrtc.data.RtcException
 import com.bglobal.lib.webrtc.data.model.call.DataDTO
 import com.bglobal.lib.webrtc.data.model.call.ParticipantDTO
 import com.bglobal.lib.webrtc.data.model.call.answer.AnswerRequest
+import com.bglobal.lib.webrtc.data.model.call.controller.ControllerDTO
+import com.bglobal.lib.webrtc.data.model.call.controller.ControllerRequest
 import com.bglobal.lib.webrtc.data.model.call.offer.OfferRequest
+import com.bglobal.lib.webrtc.data.model.call.option.OptionDTO
 import com.bglobal.lib.webrtc.data.model.call.peer.PeerRequest
 import com.google.gson.GsonBuilder
 
@@ -18,9 +21,7 @@ class HandleModel {
             sdp = sdp
         )
 
-        return OfferRequest(
-            dataDto = dataDto
-        ).apply {
+        return OfferRequest(dataDto = dataDto).apply {
             this.type = SOCKET_TYPE.COMMAND
             this.topic = SOCKET_TOPIC.JOIN
             this.transId = transId
@@ -34,9 +35,7 @@ class HandleModel {
 
         val dataDtoRequest = DataDTO(sdp = sdp)
 
-        return AnswerRequest(
-            dataDto = dataDtoRequest
-        ).apply {
+        return AnswerRequest(dataDto = dataDtoRequest).apply {
             this.type = SOCKET_TYPE.RESPONSE
             this.transId = transId
         }
@@ -60,5 +59,30 @@ class HandleModel {
             e.printStackTrace()
             null
         }
+    }
+
+    fun getControllerRequest(name: String, command: String, transId: Int = 0): ControllerRequest {
+        val controllerDTO = ControllerDTO(
+            name = name,
+            dataChannel = command
+        )
+
+        return ControllerRequest(controllerDTO = controllerDTO).apply {
+            this.type = SOCKET_TYPE.COMMAND
+            this.topic = SOCKET_TOPIC.CONTROLLER
+            this.transId = transId
+        }
+    }
+
+    fun getJsonChangeOption(
+        isTurnOffCamera: Boolean? = null,
+        mute: Boolean? = null,
+    ): String {
+        val option = OptionDTO(
+            isTurnOffCamera = isTurnOffCamera,
+            mute = mute
+        )
+
+        return gson.toJson(option)
     }
 }

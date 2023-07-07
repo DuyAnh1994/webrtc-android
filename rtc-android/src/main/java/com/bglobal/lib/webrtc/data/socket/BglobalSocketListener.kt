@@ -2,7 +2,9 @@ package com.bglobal.lib.webrtc.data.socket
 
 import com.bglobal.lib.webrtc.data.model.call.ParticipantDTO
 import com.bglobal.lib.webrtc.data.model.call.answer.AnswerResponse
+import com.bglobal.lib.webrtc.data.model.call.controller.ControllerDTO
 import com.bglobal.lib.webrtc.data.model.call.offer.OfferResponse
+import com.bglobal.lib.webrtc.data.model.call.option.OptionDTO
 import org.java_websocket.handshake.ServerHandshake
 
 interface BglobalSocketListener {
@@ -22,7 +24,9 @@ interface BglobalSocketListener {
     }
 
     interface Event {
-        fun onParticipantList(participantList: List<ParticipantDTO>)
+        fun onParticipantList(participantList: List<ParticipantDTO>) {}
+        fun onDataChannel(controllerDTO: ControllerDTO) {}
+        fun onOption(name: String?, option: OptionDTO)
     }
 
     interface Error {

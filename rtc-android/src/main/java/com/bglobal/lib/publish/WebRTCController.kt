@@ -10,18 +10,17 @@ import com.bglobal.lib.webrtc.data.RtcException
 import com.bglobal.lib.webrtc.data.model.call.ParticipantDTO
 import com.bglobal.lib.webrtc.data.model.call.answer.AnswerResponse
 import com.bglobal.lib.webrtc.data.model.call.offer.OfferResponse
+import com.bglobal.lib.webrtc.data.model.call.option.OptionDTO
 import com.bglobal.lib.webrtc.data.model.call.toParticipantRTC
 import com.bglobal.lib.webrtc.data.socket.BglobalSocketClient
 import com.bglobal.lib.webrtc.data.socket.BglobalSocketListener
 import com.bglobal.lib.webrtc.data.socket.HandleModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.java_websocket.handshake.ServerHandshake
 import org.webrtc.CameraVideoCapturer
 import org.webrtc.EglBase
-import org.webrtc.IceCandidate
 import org.webrtc.MediaStream
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceViewRenderer
@@ -37,9 +36,9 @@ class WebRTCController(private val application: Application) {
     private var socket: BglobalSocketClient? = null
     private val handleModel by lazy { HandleModel() }
     private val rtcAudioManager by lazy { RTCAudioManager.create(application.applicationContext) }
-    private var myUser: ParticipantRTC? = null
     private var localName = ""
     private val participantRTCList = mutableListOf<ParticipantRTC>()
+    private val streamWaitingHandleList = mutableListOf<StreamAsync>()
     private var addMediaStream: StreamAsync? = null
     private var transIdByPeer = 0
     private val mainThread = CoroutineScope(Dispatchers.Main)
@@ -64,7 +63,6 @@ class WebRTCController(private val application: Application) {
             callback = callback
         )
         rtcAudioManager.setDefaultAudioDevice(RTCAudioManager.AudioDevice.SPEAKER_PHONE)
-        toggleAudio(true)
     }
 
     fun startCall(name: String) {
@@ -118,8 +116,24 @@ class WebRTCController(private val application: Application) {
         return rtcClient?.eglBase ?: throw RtcException("EglBase instance not yet initialization")
     }
 
-    fun addLocalVideo(surface: SurfaceViewRenderer) {
-        rtcClient?.addLocalVideo(surface)
+    fun initLocalVideo(surface: SurfaceViewRenderer) {
+        rtcClient?.initLocalVideo(surface)
+    }
+
+    fun turnOnCamera() {
+        rtcClient?.turnOnCamera()
+    }
+
+    fun turnOffCamera() {
+        rtcClient?.turnOffCamera()
+    }
+
+    fun addSinkLocal(surface: SurfaceViewRenderer) {
+        rtcClient?.addSinkLocal(surface)
+    }
+
+    fun removeSinkLocal(surface: SurfaceViewRenderer) {
+        rtcClient?.removeSinkLocal(surface)
     }
 
     fun addRtcListener(listener: BglobalRtcListener) {
@@ -138,14 +152,26 @@ class WebRTCController(private val application: Application) {
         rtcClient?.switchCamera(cameraSwitchHandler)
     }
 
-    fun toggleAudio(mute: Boolean) {
-        rtcClient?.toggleAudio(mute)
-    }
-
     fun peer() {
         val request = handleModel.getPeer(transId = transIdByPeer, name = localName)
         socket?.sendMessageToSocket(request, "peer")
-        transIdByPeer++
+        ++transIdByPeer
+    }
+
+    fun changeCamera(isTurnOffCamera: Boolean) {
+        val json = handleModel.getJsonChangeOption(isTurnOffCamera = isTurnOffCamera)
+        dataChannel(localName, json)
+    }
+
+    fun toggleAudio(mute: Boolean) {
+        val json = handleModel.getJsonChangeOption(mute = mute)
+        dataChannel(localName, json)
+        rtcClient?.toggleAudio(!mute)
+    }
+
+    private fun dataChannel(name: String, command: String) {
+        val request = handleModel.getControllerRequest(name = name, command = command)
+        socket?.sendMessageToSocket(request, "ctrl")
     }
 
     private val callback = object : BglobalRtcClient.Callback {
@@ -155,23 +181,29 @@ class WebRTCController(private val application: Application) {
     }
 
     private val peerConnectionObserverImpl = object : PeerConnectionObserverImpl() {
-        override fun onIceCandidate(iceCandidate: IceCandidate?) {
-            rtcClient?.addIceCandidate(iceCandidate)
-        }
-
         override fun onAddStream(track: MediaStream?) {
-//            Log.d(TAG, "\n\nonAddStream: ${track?.id}")
-
-            addMediaStream = StreamAsync(
-                id = track?.id,
-                track = track,
-                type = RoomState.USER_JOIN
-            )
+            Log.d(TAG, "\n\nonAddStream: ${track?.id}")
 
             peer()
+
+            /*
+             * - gán transId tương ứng mỗi lần gọi peer, để sau khi nhận được response của peer thì
+             *  sẽ xử lý với transId tương ứng
+             * - mỗi lần xử lý xong thì phải clear item trong stream waiting list
+             */
+            val stream = StreamAsync(
+                id = track?.id,
+                track = track,
+                type = RoomState.USER_JOIN,
+                transId = transIdByPeer
+            )
+
+            streamWaitingHandleList.add(stream)
         }
 
         override fun onRemoveStream(track: MediaStream?) {
+            Log.d(TAG, "\n\nonRemoveStream: ${track?.id}")
+
             peer()
         }
     }
@@ -184,7 +216,7 @@ class WebRTCController(private val application: Application) {
 
     private val responseListener = object : BglobalSocketListener.Response {
         override fun onOffer(response: OfferResponse) {
-            offerResponse(response.getSdp())
+            offerResponse(response.getSdp()) {}
         }
 
         override fun onPeer(participantDTOList: List<ParticipantDTO>) {
@@ -192,18 +224,40 @@ class WebRTCController(private val application: Application) {
                 it.toParticipantRTC()
             }
 
-            Log.d(TAG, "\nonPeer: $dtoList")
-
             val list = dtoList.toMutableList()
-            if (addMediaStream != null) {
-                list.forEachIndexed { i, v ->
-//                    Log.d(TAG, "ccc1 : ${v.streamId}  ---  ${addMediaStream?.id}  ---  ${addMediaStream?.track}")
-                    if (v.streamId == addMediaStream?.id) {
-                        v.mediaStream = addMediaStream?.track
-                        addMediaStream = null
-                        return@forEachIndexed
+
+            Log.d(TAG, "\n\n onPeer 1   total = ${list.count()} ----------------------------------------------")
+            list.forEach {
+                Log.d(TAG, "onPeer 1: id=[${it.id}] name=[${it.name}] streamId=[${it.streamId} ms=${it.mediaStream}]")
+            }
+
+            // TODO: xử lý lại độ phức tạp sau
+
+            list.forEachIndexed { _, v ->
+                val streamWaiting = streamWaitingHandleList.find {
+                    it.id == v.streamId
+                }
+                if (streamWaiting != null) {
+                    v.mediaStream = streamWaiting.track
+                    streamWaitingHandleList.remove(streamWaiting)
+                    return@forEachIndexed
+                }
+            }
+
+            list.forEachIndexed { i, v ->
+                participantRTCList.forEach { oldItem ->
+                    if (v.streamId == oldItem.streamId) {
+                        val tempItem = v.copy()
+                        tempItem.mediaStream = oldItem.mediaStream
+                        list[i] = tempItem
+                        return@forEach
                     }
                 }
+            }
+
+            Log.d(TAG, "\n\n onPeer 2   total = ${list.count()} ----------------------------------------------")
+            list.forEach {
+                Log.d(TAG, "onPeer 2: id=[${it.id}] name=[${it.name}] streamId=[${it.streamId} ms=${it.mediaStream}]")
             }
 
             participantRTCList.replace(list)
@@ -212,19 +266,22 @@ class WebRTCController(private val application: Application) {
     }
 
     private val eventListener = object : BglobalSocketListener.Event {
-        override fun onParticipantList(participantList: List<ParticipantDTO>) {
-            CoroutineScope(Dispatchers.IO).launch {
-                /*
-                 - tạm thời xử lý như sau:
-                 nếu mình đang ở trong room thì callback này được gọi khi có user join room,
-                 lúc này gọi peer để lấy thông tin các user trong room. bao gồm cả id, name, streamId
-                 */
+        override fun onOption(name: String?, option: OptionDTO) {
+            val list = participantRTCList.toMutableList()
 
-                // TODO: xử lý ở đây đang bất đồng bộ, xem xét gọi peer ở onAddStream/onAddTrack
-//                if (!isOnAddTrackRunning) {
-//                val request = handleModel.getPeer(username)
-//                socket?.sendMessageToSocket(request, "peer")
-//                }
+            var currItem: ParticipantRTC? = null
+            list.forEach {
+                if (name != localName && name == it.name) {
+                    currItem = it
+                    return@forEach
+                }
+            }
+
+            currItem?.let {
+                it.isTurnOffCamera = option.isTurnOffCamera
+                it.isMute = option.mute
+
+                rtcListener?.onOption(it)
             }
         }
     }
